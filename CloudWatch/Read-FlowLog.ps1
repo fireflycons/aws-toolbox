@@ -19,11 +19,24 @@
     .PARAMETER EndTime
         The end of the time range. Events with a time stamp equal to or later than this time are not included.
 
+    .PARAMETER FilterPattern
+        Applies a server-side filter to the results.  This filters the results before they are returned by AWS.
+        Filter syntax is described here: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html
+
     .PARAMETER Profile
         Name of a stored profile to use for authentication. If omitted, instance profile credentials, or existing shell credentials are used.
 
     .EXAMPLE
         Read-FlowLog.ps1 -Profile myprofile -LogStreamName eni-00000000000000000-all -StartTime ([DateTime]::UtcNow.AddHours(-1)) | Where-Object { $_.DestPort -eq 80 } | Out-GridView
+        Filter client-side (slow)
+
+    .EXAMPLE
+        Read-FlowLog.ps1 -Profile myprofile -LogStreamName eni-00000000000000000-all -StartTime ([DateTime]::UtcNow.AddHours(-1)) -FilterPattern "[Version,AccountId,InterfaceId,SourceAddress,DestAddress,SourcePort,DestPort=80,...]" | Out-GridView
+        Filter server side (fast, but tricky syntax)
+
+    .NOTES
+        IAM permissions required to run this script
+            logs:FilterLogEvents
 #>
 param
 (
@@ -35,6 +48,8 @@ param
     [DateTime]$StartTime,
 
     [DateTime]$EndTime,
+
+    [string]$FilterPattern = [string].Empty,
 
     [string]$Profile
 )
@@ -71,19 +86,6 @@ elseif (-not (($script:IsRunningInAws) -or $null -ne (Get-Item variable:StoredAW
     throw "Not running inside EC2 and no initialised credential found. Use -Profile or call Initialize-AWSDefaults with keys for the target account."
 }
 
-# Create splat argument, and add start time/end time if present
-$args = @{}
-
-if ($StartTime)
-{
-    $args.Add('StartTime', $StartTime)
-}
-
-if ($EndTime)
-{
-    $args.Add('EndTime', $EndTime)
-}
-
 # Count all the events read
 $totalEvents = 0
 
@@ -93,6 +95,19 @@ $logMessageRx = '^(?<Version>\d+)\s+(?<AccountId>\d+)\s+(?<InterfaceId>[\w-]+)\s
 # UNIX epoch for timestamp -> DateTime
 $epoch = New-Object DateTime -ArgumentList (1970, 1, 1, 0, 0, 0, 0, 'Utc')
 
+# Create splat argument, and add start time/end time if present
+$args = @{}
+
+if ($StartTime)
+{
+    $args.Add('StartTime', [int64](($StartTime.ToUniversalTime() - $epoch).TotalMilliseconds))
+}
+
+if ($EndTime)
+{
+    $args.Add('EndTime', [int64](($EndTime.ToUniversalTime() - $epoch).TotalMilliseconds))
+}
+
 $events = $(
 
     do
@@ -100,7 +115,7 @@ $events = $(
         # Loop until we get no more events from AWS
 
         Write-Host "Reading log..."
-        $log = Get-CWLLogEvent -LogGroupName $LogGroupName -LogStreamName $LogStreamName @args
+        $log = Get-CWLFilteredLogEvent -LogGroupName $LogGroupName -LogStreamName $LogStreamName -FilterPattern $FilterPattern @args
 
         # Number of events in this batch
         $numEvents = ($log.Events | Measure-Object).Count
@@ -113,7 +128,7 @@ $events = $(
 
         Write-Host "Processing events..."
         $log.Events |
-        Foreach-Object {
+            Foreach-Object {
 
             # Deconstruct log record and create an object for it
             if ($_.Message -match $logMessageRx)
@@ -122,20 +137,20 @@ $events = $(
                 $h = @{}
 
                 $Matches.Keys |
-                Where-Object { $_ -ine '0' } |
-                Foreach-Object {
+                    Where-Object { $_ -ine '0' } |
+                    Foreach-Object {
                     $h.Add($_, $Matches[$_])
                 }
 
                 # Convert UNIX times to local DateTimes
                 'StartTime', 'EndTime' |
-                Foreach-Object {
+                    Foreach-Object {
                     $h[$_] = $epoch.AddSeconds([int]::Parse($h[$_])).ToLocalTime()
                 }
 
                 # Convert integer values from strings
                 'Packets', 'Version', 'SourcePort', 'Bytes', 'DestPort', 'Protocol' |
-                Foreach-Object {
+                    Foreach-Object {
                     $h[$_] = [long]::Parse($h[$_])
                 }
 
@@ -151,7 +166,8 @@ $events = $(
                 # Update progress every 50 records processed.
                 Write-Progress -Activity "Processing event batch" -Status "$numProcessed of $numEvents" -PercentComplete ($numProcessed * 100 / $numEvents)
             }
-        }
+        } |
+            Select-Object -Property Version, AccountId, InterfaceId, SourceAddress, DestAddress, SourcePort, DestPort, Protocol, Packets, Bytes, StartTime, EndTime, Action, Status # Order fields correctly
 
         # End progress
         Write-Progress -Activity "Processing event batch" -Status 'Processing' -PercentComplete 100 -Completed
@@ -176,10 +192,11 @@ $events = $(
             }
         }
     }
-    while($moreData)
+    while ($moreData)
 )
 
-Write-Host "Total events returned: $totalEvents"
+Write-Verbose "Total events processed   : $totalEvents"
+Write-Verbose "Number of events returned: $(($events | Measure-Object).Count)"
 
 # Emit the events.
 $events
