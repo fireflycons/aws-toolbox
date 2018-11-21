@@ -110,7 +110,7 @@ if ($Profile)
 
     if ($Region)
     {
-        Set-DefaultAWSRegion -Region eu-west-1
+        Set-DefaultAWSRegion -Region $Region
     }
 }
 elseif (-not (($script:IsRunningInAws) -or $null -ne (Get-Item variable:StoredAWSCredentials -ErrorAction SilentlyContinue)))
