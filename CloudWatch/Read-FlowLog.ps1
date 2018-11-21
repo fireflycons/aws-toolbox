@@ -196,7 +196,7 @@ $events = $(
                 # Convert UNIX times to local DateTimes
                 'StartTime', 'EndTime' |
                     Foreach-Object {
-                    $h[$_] = $epoch.AddSeconds([int]::Parse($h[$_])).ToLocalTime()
+                    $h[$_] = $epoch.AddSeconds([long]::Parse($h[$_])).ToLocalTime()
                 }
 
                 # Convert integer values from strings
