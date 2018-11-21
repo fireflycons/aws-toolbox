@@ -13,14 +13,21 @@
     .PARAMETER LogStreamName
         The name of the log stream.
 
+    .PARAMETER Interleaved
+        If the value is true, the operation makes a best effort to provide responses that contain events from multiple log streams within the log group, interleaved in a single response.
+        If the value is false, all the matched log events in the first log stream are searched first, then those in the next log stream, and so on. The default is false.
+
     .PARAMETER StartTime
         The start of the time range. Events with a time stamp equal to this time or later than this time are included. Events with a time stamp earlier than this time are not included.
 
     .PARAMETER EndTime
         The end of the time range. Events with a time stamp equal to or later than this time are not included.
 
+    .PARAMETER Last
+        Sets the time range to the last X minutes from now. Default of 30 minutes.
+
     .PARAMETER FilterPattern
-        Applies a server-side filter to the results.  This filters the results before they are returned by AWS.
+        Applies a server-side filter to the results.  This filters the results before they are returned by AWS. If not provided, all the events are matched.
         Filter syntax is described here: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html
 
     .PARAMETER Profile
@@ -28,7 +35,7 @@
 
     .EXAMPLE
         Read-FlowLog.ps1 -Profile myprofile -LogStreamName eni-00000000000000000-all -StartTime ([DateTime]::UtcNow.AddHours(-1)) | Where-Object { $_.DestPort -eq 80 } | Out-GridView
-        Filter client-side (slow)
+        Filter client-side (slow, uses more memory)
 
     .EXAMPLE
         Read-FlowLog.ps1 -Profile myprofile -LogStreamName eni-00000000000000000-all -StartTime ([DateTime]::UtcNow.AddHours(-1)) -FilterPattern "[Version,AccountId,InterfaceId,SourceAddress,DestAddress,SourcePort,DestPort=80,...]" | Out-GridView
@@ -37,21 +44,41 @@
     .NOTES
         IAM permissions required to run this script
             logs:FilterLogEvents
+
+    .INPUTS
+        None
+
+    .OUTPUTS
+        [object]
+        List of parsed flow log entries
+
+    .LINK
+        https://github.com/fireflycons/aws-toolbox/tree/master/CloudWatch
 #>
+[CmdletBinding(DefaultParametersetname='LastX')]
 param
 (
     [string]$LogGroupName = 'Flow-Logs',
 
     [Parameter(Mandatory = $true)]
-    [string]$LogStreamName,
+    [string[]]$LogStreamName,
 
+    [switch]$Interleaved,
+
+    [Parameter(ParameterSetName = 'Range')]
     [DateTime]$StartTime,
 
+    [Parameter(ParameterSetName = 'Range')]
     [DateTime]$EndTime,
+
+    [Parameter(ParameterSetName = 'LastX')]
+    [int]$Last = 30,
 
     [string]$FilterPattern = [string].Empty,
 
-    [string]$Profile
+    [string]$Profile,
+
+    [string]$Region
 )
 
 $ErrorActionPreference = 'Stop'
@@ -79,11 +106,16 @@ if (-not (Get-Module -Name AWSPowerShell -ErrorAction SilentlyContinue))
 # Set up credentials if given
 if ($Profile)
 {
-    Initialize-AWSDefaults -ProfileName $Profile -Region eu-west-1
+    Set-AWSCredential -ProfileName $Profile
+
+    if ($Region)
+    {
+        Set-DefaultAWSRegion -Region eu-west-1
+    }
 }
 elseif (-not (($script:IsRunningInAws) -or $null -ne (Get-Item variable:StoredAWSCredentials -ErrorAction SilentlyContinue)))
 {
-    throw "Not running inside EC2 and no initialised credential found. Use -Profile or call Initialize-AWSDefaults with keys for the target account."
+    throw "Not running inside EC2 and no initialised credential found. Use -Profile or or one of the credential cmdlets with keys for the target account."
 }
 
 # Count all the events read
@@ -98,14 +130,33 @@ $epoch = New-Object DateTime -ArgumentList (1970, 1, 1, 0, 0, 0, 0, 'Utc')
 # Create splat argument, and add start time/end time if present
 $args = @{}
 
-if ($StartTime)
+switch ($PSCmdLet.ParameterSetName)
 {
-    $args.Add('StartTime', [int64](($StartTime.ToUniversalTime() - $epoch).TotalMilliseconds))
+    'LastX' {
+
+        # Start time is $Last minutes before now
+        $args.Add('StartTime', [int64](([DateTime]::UtcNow.AddMinutes(0 - $Last) - $epoch).TotalMilliseconds))
+    }
+
+    'Range' {
+
+        # Convert user supplied start and end time to milliseconds since Unix epoch
+        if ($StartTime)
+        {
+            $args.Add('StartTime', [int64](($StartTime.ToUniversalTime() - $epoch).TotalMilliseconds))
+        }
+
+        if ($EndTime)
+        {
+            $args.Add('EndTime', [int64](($EndTime.ToUniversalTime() - $epoch).TotalMilliseconds))
+        }
+    }
 }
 
-if ($EndTime)
+if ($Interleaved)
 {
-    $args.Add('EndTime', [int64](($EndTime.ToUniversalTime() - $epoch).TotalMilliseconds))
+    # Interleave if requested
+    $args.Add('Interleaved', $true)
 }
 
 $events = $(
@@ -154,8 +205,8 @@ $events = $(
                     $h[$_] = [long]::Parse($h[$_])
                 }
 
-                # Add the ingestion time which is in its own field in the event record
-                $h.Add('IngestionTime', $_.IngestionTime)
+                # Add the ingestion time which is in its own field in the event record. This one's in milliseconds since epoch
+                $h.Add('IngestionTime', $epoch.AddMilliseconds($_.IngestionTime))
 
                 # Emit new object with properties defined by the hash
                 New-Object PSObject -Property $h
@@ -167,7 +218,7 @@ $events = $(
                 Write-Progress -Activity "Processing event batch" -Status "$numProcessed of $numEvents" -PercentComplete ($numProcessed * 100 / $numEvents)
             }
         } |
-            Select-Object -Property Version, AccountId, InterfaceId, SourceAddress, DestAddress, SourcePort, DestPort, Protocol, Packets, Bytes, StartTime, EndTime, Action, Status # Order fields correctly
+            Select-Object -Property IngestionTime, Version, AccountId, InterfaceId, SourceAddress, DestAddress, SourcePort, DestPort, Protocol, Packets, Bytes, StartTime, EndTime, Action, Status # Order fields correctly
 
         # End progress
         Write-Progress -Activity "Processing event batch" -Status 'Processing' -PercentComplete 100 -Completed
