@@ -149,7 +149,7 @@ Task Deploy -Depends Init {
     $isTagged = -not [string]::IsNullOrEmpty($raw.Output)
 
     # Gate Production deployment
-    if (#$true
+    if (
         $ENV:BHBuildSystem -ne 'Unknown' -and
         $ENV:BHBranchName -eq "master" -and
         $isTagged
@@ -159,7 +159,7 @@ Task Deploy -Depends Init {
         $Params = @{
             Path  = $ProjectRoot
             Force = $true
-            Tags = 'Production'
+            Tags = @('Development', 'Production')
         }
 
         Invoke-PSDeploy @Verbose @Params
@@ -175,6 +175,7 @@ Task Deploy -Depends Init {
         $Params = @{
             Path  = $ProjectRoot
             Force = $true
+            Tags = 'Development'
         }
 
         Invoke-PSDeploy @Verbose @Params
