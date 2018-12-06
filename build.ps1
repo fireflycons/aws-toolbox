@@ -30,13 +30,17 @@ try
 
     if ($missingModules)
     {
-        $installedModules = Get-Module -ListAvailable
+        Write-Host "Modules not found: $($missingModules -join ',')"
+        $installedModules = Get-Module -ListAvailable | Select-Object -ExpandProperty Name
 
+        Write-Host "Installed Modules: $($installedModules -join ',')"
         $neededModules = $requiredModules |
             Where-Object {
-            -not $installedModules.Name -icontains $_
+            -not $installedModules -icontains $_
         } |
             Select-Object -ExpandProperty Name
+
+        Write-Host "Modules to install: $($neededModules -join ',')"
 
         if (($neededModules | Measure-Object).Count -gt 0)
         {
