@@ -8,15 +8,15 @@ Locale: en-US
 
 # aws-toolbox Module
 ## Description
-{{Manually Enter Description Here}}
+A module containing assorted AWS helper functions I've developed along the way
 
 ## aws-toolbox Cmdlets
 ### [Read-ATCWLFlowLog](Read-ATCWLFlowLog.md)
-{{Manually Enter Read-ATCWLFlowLog Description Here}}
+Read a flow log into a list of PowerShell custom objects
 
 ### [Set-ATCFNStackDeletionPolicy](Set-ATCFNStackDeletionPolicy.md)
-{{Manually Enter Set-ATCFNStackDeletionPolicy Description Here}}
+Set or remove stack policy to prevent replacement or deletion of resources
 
 ### [Test-ATEC2IsRunningInEC2](Test-ATEC2IsRunningInEC2.md)
-{{Manually Enter Test-ATEC2IsRunningInEC2 Description Here}}
+Determine if this code is executing on an EC2 instance
 
