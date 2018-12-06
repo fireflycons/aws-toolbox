@@ -36,14 +36,13 @@ try
         Write-Host "Installed Modules: $($installedModules -join ',')"
         $neededModules = $requiredModules |
             Where-Object {
-            -not $installedModules -icontains $_
-        } |
-            Select-Object -ExpandProperty Name
+                -not ($installedModules -icontains $_)
+        }
 
-        Write-Host "Modules to install: $($neededModules -join ',')"
 
         if (($neededModules | Measure-Object).Count -gt 0)
         {
+            Write-Host "Installing modules: $($neededModules -join ',')"
             Install-Module $neededModules -Force -AllowClobber -SkipPublisherCheck -Scope CurrentUser
         }
 
