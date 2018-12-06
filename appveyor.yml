@@ -20,7 +20,4 @@ test_script:
   - ps: . .\build.ps1 -Task Test
 
 deploy_script:
-  - ps: . .\build.ps1 -Task deploy_script
-
-artifacts:
-  - path: '**\*.nupkg'
+  - ps: . .\build.ps1 -Task Deploy

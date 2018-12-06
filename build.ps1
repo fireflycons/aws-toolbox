@@ -30,15 +30,12 @@ try
 
     if ($missingModules)
     {
-        Write-Host "Modules not found: $($missingModules -join ',')"
         $installedModules = Get-Module -ListAvailable | Select-Object -ExpandProperty Name
 
-        Write-Host "Installed Modules: $($installedModules -join ',')"
         $neededModules = $requiredModules |
             Where-Object {
                 -not ($installedModules -icontains $_)
         }
-
 
         if (($neededModules | Measure-Object).Count -gt 0)
         {
@@ -46,6 +43,7 @@ try
             Install-Module $neededModules -Force -AllowClobber -SkipPublisherCheck -Scope CurrentUser
         }
 
+        Write-Host "Importing modules: $($missingModules -join ',')"
         Import-Module $missingModules
     }
 

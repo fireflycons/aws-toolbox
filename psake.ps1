@@ -148,7 +148,7 @@ Task Deploy -Depends Init {
     $raw = Invoke-Git -Arguments "describe --exact-match $commitId" -Raw $true
     $isTagged = -not [string]::IsNullOrEmpty($raw.Output)
 
-    # Gate deployment
+    # Gate Production deployment
     if (#$true
         $ENV:BHBuildSystem -ne 'Unknown' -and
         $ENV:BHBranchName -eq "master" -and
@@ -159,15 +159,25 @@ Task Deploy -Depends Init {
         $Params = @{
             Path  = $ProjectRoot
             Force = $true
+            Tags = 'Production'
         }
 
         Invoke-PSDeploy @Verbose @Params
     }
     else
     {
-        "Skipping deployment: To deploy, ensure that...`n" +
+        "Skipping PSGallery deployment: To deploy, ensure that...`n" +
         "`t* You are in a known build system (Current: $ENV:BHBuildSystem)`n" +
         "`t* You are committing a tag to the master branch (Branch: $ENV:BHBranchName, Is Tag: $isTagged) `n"
+        " "
+
+        # Only deploy AppVeyor artifact
+        $Params = @{
+            Path  = $ProjectRoot
+            Force = $true
+        }
+
+        Invoke-PSDeploy @Verbose @Params
     }
 }
 
