@@ -10,7 +10,7 @@ function Read-ATCWLFlowLog
         object simplifying sorting and searching of the log events.
 
     .PARAMETER LogGroupName
-        The name of the log group. Defaults to 'Flow-Logs'
+        The name of the log group.
 
     .PARAMETER LogStreamName
         The name of the log stream.
@@ -26,11 +26,11 @@ function Read-ATCWLFlowLog
         The end of the time range. Events with a time stamp equal to or later than this time are not included.
 
     .PARAMETER Last
-        Sets the time range to the last X minutes from now. Default of 30 minutes.
+        Sets the time range to the last X minutes from now.
 
     .PARAMETER FilterPattern
         Applies a server-side filter to the results.  This filters the results before they are returned by AWS. If not provided, all the events are matched.
-        Filter syntax is described here: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html
+        See Related Links for a link to filter syntax.
 
     .EXAMPLE
         Read-FlowLog.ps1 -Profile myprofile -LogStreamName eni-00000000000000000-all -StartTime ([DateTime]::UtcNow.AddHours(-1)) | Where-Object { $_.DestPort -eq 80 } | Out-GridView
@@ -66,10 +66,6 @@ function Read-ATCWLFlowLog
         Notes
         - IPv4 addresses for network interfaces are always their private IPv4 address.
 
-        See also
-        - VPC Flow Logs: https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html
-        - Assigned Internet Protocol Numbers: http://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml
-
     .INPUTS
         None
 
@@ -79,6 +75,15 @@ function Read-ATCWLFlowLog
 
     .LINK
         https://github.com/fireflycons/aws-toolbox/tree/master/docs/en-US/Read-ATCWLFlowLog.md
+
+    .LINK
+        https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html
+
+    .LINK
+        http://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml
+
+    .LINK
+        https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html
 #>
     [CmdletBinding(DefaultParametersetname='LastX')]
     param

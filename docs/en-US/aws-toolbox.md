@@ -14,7 +14,7 @@ A module containing assorted AWS helper functions I've developed along the way
 ### [Read-ATCWLFlowLog](Read-ATCWLFlowLog.md)
 Read a flow log into a list of PowerShell custom objects
 
-### [Set-ATCFNStackDeletionPolicy](Set-ATCFNStackDeletionPolicy.md)
+### [Set-ATCFNStackProtectionPolicy](Set-ATCFNStackProtectionPolicy.md)
 Set or remove stack policy to prevent replacement or deletion of resources
 
 ### [Test-ATEC2IsRunningInEC2](Test-ATEC2IsRunningInEC2.md)

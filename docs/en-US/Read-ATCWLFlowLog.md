@@ -49,7 +49,6 @@ Filter server side (fast, but tricky syntax)
 
 ### -LogGroupName
 The name of the log group.
-Defaults to 'Flow-Logs'
 
 ```yaml
 Type: String
@@ -130,7 +129,6 @@ Accept wildcard characters: False
 
 ### -Last
 Sets the time range to the last X minutes from now.
-Default of 30 minutes.
 
 ```yaml
 Type: Int32
@@ -148,7 +146,7 @@ Accept wildcard characters: False
 Applies a server-side filter to the results. 
 This filters the results before they are returned by AWS.
 If not provided, all the events are matched.
-Filter syntax is described here: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html
+See Related Links for a link to filter syntax.
 
 ```yaml
 Type: String
@@ -199,11 +197,13 @@ Each object has the following fields
 Notes
 - IPv4 addresses for network interfaces are always their private IPv4 address.
 
-See also
-- VPC Flow Logs: https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html
-- Assigned Internet Protocol Numbers: http://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml
-
 ## RELATED LINKS
 
 [https://github.com/fireflycons/aws-toolbox/tree/master/docs/en-US/Read-ATCWLFlowLog.md](https://github.com/fireflycons/aws-toolbox/tree/master/docs/en-US/Read-ATCWLFlowLog.md)
+
+[https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html](https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html)
+
+[http://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml](http://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml)
+
+[https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html)
 
