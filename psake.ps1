@@ -140,45 +140,66 @@ Task Build -Depends Test {
     }
 }
 
+function Test-IsTagPush
+{
+    # would be nice to detect tag by using GIT commands, but can't work out how.
+    if ($ENV:BHBuildSystem -ieq 'AppVeyor' -and $ENV:APPVEYOR_REPO_TAG -ieq 'true')
+    {
+        return $true
+    }
+
+    return $false
+}
+
 Task Deploy -Depends Init {
     $lines
 
-    # Is this commit a tag
-    $commitId = Invoke-Git -Arguments "rev-parse master"
-    $raw = Invoke-Git -Arguments "describe --exact-match $commitId" -Raw $true
-    $isTagged = -not [string]::IsNullOrEmpty($raw.Output)
-
-    # Gate Production deployment
-    if (
-        $ENV:BHBuildSystem -ne 'Unknown' -and
-        $ENV:BHBranchName -eq "master" -and
-        $isTagged
-    )
+    try
     {
+        # Is this commit a tag
+        $isTagged = Test-IsTagPush
 
-        $Params = @{
-            Path  = $ProjectRoot
-            Force = $true
-            Tags = @('Development', 'Production')
+        # Gate Production deployment
+        if (
+            $ENV:BHBuildSystem -ne 'Unknown' -and
+            $ENV:BHBranchName -eq "master" -and
+            $isTagged
+        )
+        {
+            if ($ENV:APPVEYOR_REPO_TAG_NAME)
+            {
+                "PSGallery deployment for tag: ${ENV:APPVEYOR_REPO_TAG_NAME}"
+            }
+
+            $Params = @{
+                Path  = $ProjectRoot
+                Force = $true
+                Tags = @('Development', 'Production')
+            }
+
+            Invoke-PSDeploy @Verbose @Params
         }
+        else
+        {
+            "Skipping PSGallery deployment: To deploy, ensure that...`n" +
+            "`t* You are in a known build system (Current: $ENV:BHBuildSystem)`n" +
+            "`t* You are committing a tag to the master branch (Branch: $ENV:BHBranchName, Is Tag: $isTagged) `n"
+            " "
 
-        Invoke-PSDeploy @Verbose @Params
+            # Only deploy AppVeyor artifact
+            $Params = @{
+                Path  = $ProjectRoot
+                Force = $true
+                Tags = 'Development'
+            }
+
+            Invoke-PSDeploy @Verbose @Params
+        }
     }
-    else
+    catch
     {
-        "Skipping PSGallery deployment: To deploy, ensure that...`n" +
-        "`t* You are in a known build system (Current: $ENV:BHBuildSystem)`n" +
-        "`t* You are committing a tag to the master branch (Branch: $ENV:BHBranchName, Is Tag: $isTagged) `n"
-        " "
-
-        # Only deploy AppVeyor artifact
-        $Params = @{
-            Path  = $ProjectRoot
-            Force = $true
-            Tags = 'Development'
-        }
-
-        Invoke-PSDeploy @Verbose @Params
+        $_.ScriptStackTrace
+        throw
     }
 }
 
