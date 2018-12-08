@@ -6,8 +6,10 @@ function Read-ATCWLFlowLog
 
     .DESCRIPTION
         Read a flow log into a list of PowerShell custom objects and emits this as the result of the script.
-        The various fields of the flow log are parsed out and can be accesses as properties of the returned
+        The various fields of the flow log are parsed out and can be accessed as properties of the returned
         object simplifying sorting and searching of the log events.
+
+        You can pipe the output to Out-GridView to view quickly or Export-Csv for further analysis in Excel.
 
     .PARAMETER LogGroupName
         The name of the log group.
@@ -33,11 +35,19 @@ function Read-ATCWLFlowLog
         See Related Links for a link to filter syntax.
 
     .EXAMPLE
-        Read-FlowLog.ps1 -Profile myprofile -LogStreamName eni-00000000000000000-all -StartTime ([DateTime]::UtcNow.AddHours(-1)) | Where-Object { $_.DestPort -eq 80 } | Out-GridView
+        Read-FlowLog.ps1 -Profile myprofile -LogStreamName eni-00000000000000000-all -Last 30
+        Read all events for the last 30 minutes.
+
+    .EXAMPLE
+        Read-FlowLog.ps1 -Profile myprofile -LogStreamName eni-00000000000000000-all,eni-00000000000000001-all -Last 30 -Interleaved
+        Read all events for the last 30 minutes for two interfaces and interleave the results.
+
+    .EXAMPLE
+        Read-FlowLog.ps1 -Profile myprofile -LogStreamName eni-00000000000000000-all -StartTime ([DateTime]::UtcNow.AddHours(-1)) | Where-Object { $_.DestPort -eq 80 }
         Filter client-side (slow, uses more memory)
 
     .EXAMPLE
-        Read-FlowLog.ps1 -Profile myprofile -LogStreamName eni-00000000000000000-all -StartTime ([DateTime]::UtcNow.AddHours(-1)) -FilterPattern "[Version,AccountId,InterfaceId,SourceAddress,DestAddress,SourcePort,DestPort=80,...]" | Out-GridView
+        Read-FlowLog.ps1 -Profile myprofile -LogStreamName eni-00000000000000000-all -StartTime ([DateTime]::UtcNow.AddHours(-1)) -FilterPattern "[Version,AccountId,InterfaceId,SourceAddress,DestAddress,SourcePort,DestPort=80,...]"
         Filter server side (fast, but tricky syntax)
 
     .NOTES
