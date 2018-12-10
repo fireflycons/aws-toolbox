@@ -49,17 +49,17 @@ Read all events for the last 30 minutes for two interfaces and interleave the re
 
 ### EXAMPLE 3
 ```
-Read-FlowLog.ps1 -Profile myprofile -LogStreamName eni-00000000000000000-all -StartTime ([DateTime]::UtcNow.AddHours(-1)) | Where-Object { $_.DestPort -eq 80 }
+Read-FlowLog.ps1 -Profile myprofile -LogStreamName eni-00000000000000000-all -StartTime ([DateTime]::UtcNow.AddHours(-1)) -EndTime ([DateTime]::UtcNow.AddMinutes(-30)) | Where-Object { $_.DestPort -eq 80 }
 ```
 
-Filter client-side (slow, uses more memory)
+Read all events for the given range and filter client-side (slow, uses more memory)
 
 ### EXAMPLE 4
 ```
-Read-FlowLog.ps1 -Profile myprofile -LogStreamName eni-00000000000000000-all -StartTime ([DateTime]::UtcNow.AddHours(-1)) -FilterPattern "[Version,AccountId,InterfaceId,SourceAddress,DestAddress,SourcePort,DestPort=80,...]"
+Read-FlowLog.ps1 -Profile myprofile -LogStreamName eni-00000000000000000-all -StartTime ([DateTime]::UtcNow.AddHours(-1)) -EndTime ([DateTime]::UtcNow.AddMinutes(-30)) -FilterPattern "[Version,AccountId,InterfaceId,SourceAddress,DestAddress,SourcePort,DestPort=80,...]"
 ```
 
-Filter server side (fast, but tricky syntax)
+Read all events for the given range and filter server side (fast, but tricky syntax)
 
 ## PARAMETERS
 
