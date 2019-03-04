@@ -10,6 +10,10 @@ Ensure that you test operations from this module that make changes to your infra
 well tested on a pre-production copy before you apply to any production resource!
 I won't be held responsible if you blow up your production stacks.
 
+# Installation
+
+This module is published in the [PowerShell Gallery](https://www.powershellgallery.com/packages?q=aws-toolbox)
+
 # What this is
 A module containing a collection of PowerShell scripts I've created to ease various tasks.
 
