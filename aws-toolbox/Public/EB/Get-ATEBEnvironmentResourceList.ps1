@@ -25,12 +25,13 @@ function Get-ATEBEnvironmentResourceList
             [PSObject[]] Information about each environment returned
             or nothing if -AsText specified.
     #>
+    [CmdletBinding(DefaultParameterSetName = 'Name')]
     param
     (
         [Parameter(ParameterSetName = 'Id')]
         [string]$EnvironmentId,
 
-        [Parameter(ParameterSetName = 'Name')]
+        [Parameter(ParameterSetName = 'Name', Position = 0)]
         [string]$EnvironmentName,
 
         [Parameter(ParameterSetName = 'App')]
@@ -109,6 +110,7 @@ function Get-ATEBEnvironmentResourceList
             ApplicationName      = $_.ApplicationName
             EnviromentName       = $_.EnvironmentName
             EnvironmentId        = $_.EnvironmentId
+            RunningVersion       = $_.VersionLabel
             LastUpdated          = $_.DateUpdated
             Health               = $_.Health.Value
             Instances            = New-Object PSObject -Property @{
@@ -194,6 +196,7 @@ function Get-ATEBEnvironmentResourceList
         Write-Host "Application       : $($_.ApplicationName)"
         Write-Host "Environment       : $($_.EnviromentName) ($($_.EnvironmentId))"
         Write-Host "Health            : $($_.Health)"
+        Write-Host "Running Version   : $($_.RunningVersion)"
         Write-Host "Stack Name        : $($_.StackName)"
         Write-Host "Last Updated      : $($_.LastUpdated.ToString('yyyy-MM-dd HH:mm:ss'))"
         Write-Host "AutoScaling Groups: $($_.AutoScalingGroups -join ', ')"
