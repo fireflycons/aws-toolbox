@@ -43,6 +43,7 @@ function Invoke-ATSSMPowerShellScript
         Invoke-ATSSMPowerShellScript -InstanceIds i-00000000 -AsText { dir c:\ }
         Returns directory listing from remote instance to the console.
 #>
+    [CmdletBinding(DefaultParameterSetName = 'AsText')]
     param
     (
         [Parameter(Mandatory=$true)]
@@ -227,7 +228,7 @@ function Split-Array
                 if (-not ([string]::IsNullOrEmpty($detail.StandardErrorContent)))
                 {
                     Write-Host
-                    Write-Host -ForegroundColor Red $detail.StandardOutputContent
+                    Write-Host -ForegroundColor Red $detail.StandardErrorContent
                     Write-Host
                 }
             }

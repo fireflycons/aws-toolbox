@@ -12,6 +12,12 @@ Run PowerShell on hosts using SSM AWS-RunPowerShellScript.
 
 ## SYNTAX
 
+### AsText (Default)
+```
+Invoke-ATSSMPowerShellScript -InstanceIds <String[]> [-ScriptBlock] <ScriptBlock> [-ExecutionTimeout <Int32>]
+ [-DeliveryTimeout <Int32>] [<CommonParameters>]
+```
+
 ### json
 ```
 Invoke-ATSSMPowerShellScript -InstanceIds <String[]> [-ScriptBlock] <ScriptBlock> [-AsJson]
