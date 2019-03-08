@@ -8,18 +8,18 @@ schema: 2.0.0
 # Get-ATEBEnvironmentResourceList
 
 ## SYNOPSIS
-Gets a list of resources accociated Elastic Beanstalk environents
+Gets a list of resources associated Elastic Beanstalk environents.
 
 ## SYNTAX
+
+### Name (Default)
+```
+Get-ATEBEnvironmentResourceList [[-EnvironmentName] <String>] [-AsText] [<CommonParameters>]
+```
 
 ### Id
 ```
 Get-ATEBEnvironmentResourceList [-EnvironmentId <String>] [-AsText] [<CommonParameters>]
-```
-
-### Name
-```
-Get-ATEBEnvironmentResourceList [-EnvironmentName <String>] [-AsText] [<CommonParameters>]
 ```
 
 ### App
@@ -67,7 +67,7 @@ Parameter Sets: Name
 Aliases:
 
 Required: False
-Position: Named
+Position: 1
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

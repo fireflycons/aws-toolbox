@@ -1,3 +1,5 @@
+$ErrorActionPreference = 'Stop'
+
 # .NET compression library
 [System.Reflection.Assembly]::LoadWithPartialName('System.IO.Compression') | Out-Null
 

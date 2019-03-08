@@ -8,15 +8,30 @@ Locale: en-US
 
 # aws-toolbox Module
 ## Description
-A module containing assorted AWS helper functions I've developed along the way
+{{Manually Enter Description Here}}
 
 ## aws-toolbox Cmdlets
+### [Compare-ATDeployedStackWithSourceTemplate](Compare-ATDeployedStackWithSourceTemplate.md)
+{{Manually Enter Compare-ATDeployedStackWithSourceTemplate Description Here}}
+
+### [Get-ATEBEnvironmentResourceList](Get-ATEBEnvironmentResourceList.md)
+{{Manually Enter Get-ATEBEnvironmentResourceList Description Here}}
+
+### [Get-ATEC2LatestAMI](Get-ATEC2LatestAMI.md)
+{{Manually Enter Get-ATEC2LatestAMI Description Here}}
+
+### [Invoke-ATSSMPowerShellScript](Invoke-ATSSMPowerShellScript.md)
+{{Manually Enter Invoke-ATSSMPowerShellScript Description Here}}
+
 ### [Read-ATCWLFlowLog](Read-ATCWLFlowLog.md)
-Read a flow log into a list of PowerShell custom objects
+{{Manually Enter Read-ATCWLFlowLog Description Here}}
+
+### [Read-ATEC2LoadBalancerLogs](Read-ATEC2LoadBalancerLogs.md)
+{{Manually Enter Read-ATEC2LoadBalancerLogs Description Here}}
 
 ### [Set-ATCFNStackProtectionPolicy](Set-ATCFNStackProtectionPolicy.md)
-Set or remove stack policy to prevent replacement or deletion of resources
+{{Manually Enter Set-ATCFNStackProtectionPolicy Description Here}}
 
 ### [Test-ATEC2IsRunningInEC2](Test-ATEC2IsRunningInEC2.md)
-Determine if this code is executing on an EC2 instance
+{{Manually Enter Test-ATEC2IsRunningInEC2 Description Here}}
 

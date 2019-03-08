@@ -11,7 +11,7 @@
     RootModule        = 'aws-toolbox.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '0.1.2'
+    ModuleVersion     = '0.1.3'
 
     # ID used to uniquely identify this module
     GUID              = 'e3c04d58-4e7d-4572-9e81-3b3a93f1a518'
@@ -43,6 +43,7 @@
         'Get-ATEC2LatestAMI'
         'Read-ATEC2LoadBalancerLogs'
         'Get-ATEBEnvironmentResourceList'
+        'Invoke-ATSSMPowerShellScript'
         )
 
     # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.

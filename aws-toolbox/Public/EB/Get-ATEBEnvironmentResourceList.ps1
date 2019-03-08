@@ -2,7 +2,7 @@ function Get-ATEBEnvironmentResourceList
 {
     <#
         .SYNOPSIS
-            Gets a list of resources accociated Elastic Beanstalk environents
+            Gets a list of resources associated Elastic Beanstalk environents.
 
         .DESCRIPTION
             This command gets essential information about the resources in a beanstalk environment
