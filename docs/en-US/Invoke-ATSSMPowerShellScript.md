@@ -14,19 +14,19 @@ Run PowerShell on hosts using SSM AWS-RunPowerShellScript.
 
 ### AsText (Default)
 ```
-Invoke-ATSSMPowerShellScript -InstanceIds <String[]> [-ScriptBlock] <ScriptBlock> [-ExecutionTimeout <Int32>]
- [-DeliveryTimeout <Int32>] [<CommonParameters>]
+Invoke-ATSSMPowerShellScript -InstanceIds <String[]> [-ScriptBlock] <ScriptBlock> [-UseS3]
+ [-ExecutionTimeout <Int32>] [-DeliveryTimeout <Int32>] [<CommonParameters>]
 ```
 
 ### json
 ```
-Invoke-ATSSMPowerShellScript -InstanceIds <String[]> [-ScriptBlock] <ScriptBlock> [-AsJson]
+Invoke-ATSSMPowerShellScript -InstanceIds <String[]> [-ScriptBlock] <ScriptBlock> [-AsJson] [-UseS3]
  [-ExecutionTimeout <Int32>] [-DeliveryTimeout <Int32>] [<CommonParameters>]
 ```
 
 ### text
 ```
-Invoke-ATSSMPowerShellScript -InstanceIds <String[]> [-ScriptBlock] <ScriptBlock> [-AsText]
+Invoke-ATSSMPowerShellScript -InstanceIds <String[]> [-ScriptBlock] <ScriptBlock> [-AsText] [-UseS3]
  [-ExecutionTimeout <Int32>] [-DeliveryTimeout <Int32>] [<CommonParameters>]
 ```
 
@@ -118,6 +118,24 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### -UseS3
+SSM truncates results to 2000 characters.
+If you expect results to exceed this, then this switch
+instructs SSM to send the results to S3.
+The cmdlet will retrieve these results and return them.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### -ExecutionTimeout
 The time in seconds for a command to be completed before it is considered to have failed.
 Default is 3600 (1 hour).
@@ -167,5 +185,7 @@ For more information, see about_CommonParameters (http://go.microsoft.com/fwlink
 ### - ResultObject If -AsJson and the result was successfully parsed, then an object else NULL
 ### - ResultText   Standard Output returned by the script (Write-Host etc.)
 ## NOTES
+aws-toolbox uses a working bucket for passing results through S3 which will be created if not found.
+Format of bucket name is aws-toolbox-workspace-REGIONNAME-AWSACCOUNTID
 
 ## RELATED LINKS
