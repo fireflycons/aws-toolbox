@@ -120,4 +120,86 @@ InModuleScope -Module $ModuleName {
             }
         }
     }
+
+    Describe 'EB' {
+
+        Context 'Get-ATEBInstanceLogs' {
+
+            Mock Get-EC2Instance -MockWith {
+
+                $InstanceId |
+                ForEach-Object {
+                    New-Object PSObject -Property @{
+                        Instances = @(
+                            New-Object PSObject -Property @{
+                                Platform = 'Windows'
+                                InstanceId = $_
+                            }
+                        )
+                    }
+                }
+            }
+
+            Mock Get-EC2InstanceStatus -MockWith {
+
+                $InstanceId |
+                ForEach-Object {
+                    New-Object PSObject -Property @{
+                        InstanceId = $_
+                        InstanceState = New-Object PSObject -Property @{
+                            Code = 16
+                            Name = 'Running'
+                        }
+                        Status = New-Object PSObject -Property @{
+                            Status = New-Object PSObject -Property @{
+                                Value = 'ok'
+                            }
+                        }
+                        SystemStatus = New-Object PSObject -Property @{
+                            Status = New-Object PSObject -Property @{
+                                Value = 'ok'
+                            }
+                        }
+                    }
+                }
+            }
+
+            Mock Invoke-ATSSMPowerShellScript -MockWith {
+
+                $InstanceIds |
+                Foreach-Object {
+
+                    $sb = New-Object System.Text.StringBuilder
+                    $sb.AppendLine('---#LOG# log1.log').
+                        AppendLine('log 1 content').
+                        AppendLine('---#LOG# log2.log').
+                        AppendLine('log 2 content') | Out-Null
+
+                    New-Object PSObject -Property @{
+                        InstanceId = $_
+                        Stdout = $sb.ToString()
+                        Stderr = [string]::Empty
+                    }
+                }
+            }
+
+            It 'Downloads logs for one instance' {
+
+                Get-ATEBInstanceLogs -InstanceId i-00000001 -OutputFolder 'TESTDRIVE:\Test1'
+
+                Test-Path -Path 'TESTDRIVE:\Test1\i-00000001' | Should Be $true
+                (Get-ChildItem -Path 'TESTDRIVE:\Test1\i-00000001' | Measure-Object).Count | Should Be 2
+            }
+
+            It 'Downloads logs for two instances' {
+
+                Get-ATEBInstanceLogs -InstanceId i-00000001,i-00000002 -OutputFolder 'TESTDRIVE:\Test2'
+
+                Test-Path -Path 'TESTDRIVE:\Test2\i-00000001' | Should Be $true
+                Test-Path -Path 'TESTDRIVE:\Test2\i-00000002' | Should Be $true
+                (Get-ChildItem -Path 'TESTDRIVE:\Test2\i-00000001' | Measure-Object).Count | Should Be 2
+                (Get-ChildItem -Path 'TESTDRIVE:\Test2\i-00000002' | Measure-Object).Count | Should Be 2
+            }
+        }
+    }
 }
