@@ -13,6 +13,10 @@ function Invoke-ATSSMPowerShellScript
     .PARAMETER AsText
         Print command output from each instance to the console
 
+    .PARAMETER UseS3
+        SSM truncates results to 2000 characters. If you expect results to exceed this, then this switch
+        instructs SSM to send the results to S3. The cmdlet will retrieve these results and return them.
+
     .PARAMETER ScriptBlock
         ScriptBlock containing the script to run.
 
@@ -30,6 +34,10 @@ function Invoke-ATSSMPowerShellScript
         - InstanceId   Instance for which this result pertains to
         - ResultObject If -AsJson and the result was successfully parsed, then an object else NULL
         - ResultText   Standard Output returned by the script (Write-Host etc.)
+
+    .NOTES
+        aws-toolbox uses a working bucket for passing results through S3 which will be created if not found.
+        Format of bucket name is aws-toolbox-workspace-REGIONNAME-AWSACCOUNTID
 
     .EXAMPLE
         Invoke-ATSSMPowerShellScript -InstanceIds ('i-00000001', 'i-00000002') -ScriptBlock { net user me mypassword /add ; net localgroup Administrators me /add }
@@ -58,60 +66,97 @@ function Invoke-ATSSMPowerShellScript
         [Parameter(ParameterSetName = 'text')]
         [switch]$AsText,
 
+        [switch]$UseS3,
+
         [int]$ExecutionTimeout = 3600,
 
         [int]$DeliveryTimeout = 600
 
     )
 
-#region Local Functions
+    #region Local Functions
 
-function Split-Array
-{
-    param
-    (
-        [Array]$Array,
-
-        [Parameter(ParameterSetName = 'Parts')]
-        [int]$Parts,
-
-        [Parameter(ParameterSetName = 'Size')]
-        [int]$Size
-    )
-
-    switch ($PSCmdlet.ParameterSetName)
+    function Split-Array
     {
-        'Parts'
+        param
+        (
+            [Array]$Array,
+
+            [Parameter(ParameterSetName = 'Parts')]
+            [int]$Parts,
+
+            [Parameter(ParameterSetName = 'Size')]
+            [int]$Size
+        )
+
+        switch ($PSCmdlet.ParameterSetName)
         {
-            $partSize = [Math]::Ceiling($Array.count / $parts)
+            'Parts'
+            {
+                $partSize = [Math]::Ceiling($Array.count / $parts)
+            }
+
+            'Size'
+            {
+                $partSize = $size
+                $Parts = [Math]::Ceiling($Array.count / $size)
+            }
         }
 
-        'Size'
+        $outArray = @()
+
+        for ($i=1; $i -le $Parts; $i++)
         {
-            $partSize = $size
-            $Parts = [Math]::Ceiling($Array.count / $size)
+            $start = (($i - 1) * $partSize)
+            $end = ($i * $partSize) - 1
+
+            if ($end -ge $Array.count - 1)
+            {
+                $end = $Array.count - 1
+            }
+
+            $outArray += ,@($Array[$start..$end])
+        }
+
+        return ,$outArray
+    }
+
+    function Get-CommandOutputFromS3
+    {
+        param
+        (
+            [string]$BucketName,
+            [string]$Key
+        )
+
+        $tempfile = [IO.Path]::GetTempFileName()
+
+        try
+        {
+            Read-S3Object -BucketName $BucketName -Key $Key -File $tempfile | Out-Null
+            $text = Get-Content -Raw $tmpFile
+            return $text
+        }
+        catch
+        {
+            return [string]::Empty
+        }
+        finally
+        {
+            if (Test-Path -Path $tempFile -PathType Leaf)
+            {
+                Remove-Item $tempfile
+            }
         }
     }
 
-    $outArray = @()
+    #endregion
 
-    for ($i=1; $i -le $Parts; $i++)
+    if ($UseS3)
     {
-        $start = (($i - 1) * $partSize)
-        $end = ($i * $partSize) - 1
-
-        if ($end -ge $Array.count - 1)
-        {
-            $end = $Array.count - 1
-        }
-
-        $outArray += ,@($Array[$start..$end])
+        $s3Bucket = Get-WorkspaceBucket
+        $s3KeyPrefix = 'ssm-run-command/'
     }
-
-    return ,$outArray
-}
-
-#endregion
 
     $InstanceIds = $InstanceIds |
     Where-Object {
@@ -144,15 +189,21 @@ function Split-Array
         # Build SSM command structure
         $runCommandParams = @{
 
-            'DocumentName'   = 'AWS-RunPowerShellScript'
-            'InstanceId'     = $instanceGroup
-            'TimeoutSeconds' = $DeliveryTimeout
-            'Parameter'      = @{
+            DocumentName   = 'AWS-RunPowerShellScript'
+            InstanceId     = $instanceGroup
+            TimeoutSeconds = $DeliveryTimeout
+            Parameter      = @{
 
-                'workingDirectory' = [string]::Empty
-                'executionTimeout' = $ExecutionTimeout.ToString()
-                'commands'         = $ScriptBlock.ToString() -split [Environment]::NewLine
+                workingDirectory = [string]::Empty
+                executionTimeout = $ExecutionTimeout.ToString()
+                commands         = $ScriptBlock.ToString() -split [Environment]::NewLine
             }
+        }
+
+        if ($UseS3)
+        {
+            $runCommandParams.Add('OutputS3BucketName', $s3Bucket.BucketName)
+            $runCommandParams.Add('OutputS3KeyPrefix', $s3KeyPrefix)
         }
 
         if ($instanceGroup.Length -gt 4)
@@ -186,11 +237,11 @@ function Split-Array
         {
             if ($cmd.StatusDetails)
             {
-                throw "The command did not complete successfully. Status is $($cmd.StatusDetails). Check in SSM console for reason."
+                Write-Warning "The command did not complete successfully. Status is $($cmd.StatusDetails)."
             }
             else
             {
-                throw "The command did not complete successfully. Check in SSM console for reason."
+                Write-Warning  "The command did not complete successfully."
             }
         }
 
@@ -198,7 +249,20 @@ function Split-Array
         $instanceGroup |
         Foreach-Object {
 
-            $detail = Get-SSMCommandInvocationDetail -CommandId $cmd.CommandId -InstanceId $_
+            $instanceId = $_
+
+            if ($UseS3)
+            {
+                # Collect from S3 s3://aws-toolbox-workspace-eu-west-1-104552851521/ssm-run-command/2e4c1b5d-0f67-495c-8450-ae68c6af30a6/i-07d8ad5bb3c956cf0/awsrunPowerShellScript/0.awsrunPowerShellScript/stdout
+                $resultsKey = $s3KeyPrefix + "$($cmd.CommandId)/$($instanceId)/awsrunPowerShellScript/0.awsrunPowerShellScript"
+
+                $detail = New-Object PSObject -Property @{
+                    StandardOutputContent = Get-CommandOutputFromS3 -BucketName $s3Bucket -Key "$($resultsKey)/stdout"
+                    StandardErrorContent = Get-CommandOutputFromS3 -BucketName $s3Bucket -Key "$($resultsKey)/stderr"
+                }
+            }
+
+            $detail = Get-SSMCommandInvocationDetail -CommandId $cmd.CommandId -InstanceId $instanceId
 
             $obj = $null
 
@@ -216,7 +280,7 @@ function Split-Array
 
             if ($AsText)
             {
-                Write-Host "----------- Instance $_ ----------- "
+                Write-Host "----------- Instance $instanceId ----------- "
 
                 if (-not ([string]::IsNullOrEmpty($detail.StandardOutputContent)))
                 {
@@ -235,11 +299,11 @@ function Split-Array
             else
             {
                 New-Object PSObject -Property @{
-                    InstanceId = $_
+                    InstanceId = $instanceId
                     ResultObject = $obj
-                    ResultText = $detail.StandardOutputContent
+                    Stdout = $detail.StandardOutputContent
+                    Stderr = $detail.StandardErrorContent
                 }
-
             }
         }
     }
