@@ -31,7 +31,7 @@ Invoke-ATSSMPowerShellScript -InstanceIds <String[]> [-ScriptBlock] <ScriptBlock
 ```
 
 ## DESCRIPTION
-{{Fill in the Description}}
+Run PowerShell on hosts using SSM AWS-RunPowerShellScript.
 
 ## EXAMPLES
 

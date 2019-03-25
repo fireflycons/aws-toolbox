@@ -4,6 +4,9 @@ function Invoke-ATSSMPowerShellScript
     .SYNOPSIS
         Run PowerShell on hosts using SSM AWS-RunPowerShellScript.
 
+    .DESCRIPTION
+        Run PowerShell on hosts using SSM AWS-RunPowerShellScript.
+
     .PARAMETER InstanceIds
         List of instance IDs identifying instances to run the script on.
 
@@ -134,7 +137,7 @@ function Invoke-ATSSMPowerShellScript
         try
         {
             Read-S3Object -BucketName $BucketName -Key $Key -File $tempfile | Out-Null
-            $text = Get-Content -Raw $tmpFile
+            $text = Get-Content -Raw $tempfile
             return $text
         }
         catch
@@ -245,6 +248,13 @@ function Invoke-ATSSMPowerShellScript
             }
         }
 
+        if ($UseS3)
+        {
+            Write-Host "Waiting to ensure S3 upload completes"
+            Start-Sleep -Seconds 30
+            Write-Host "Continuing..."
+        }
+
         # Collect results
         $instanceGroup |
         Foreach-Object {
@@ -253,16 +263,22 @@ function Invoke-ATSSMPowerShellScript
 
             if ($UseS3)
             {
+                $invocation = Get-SSMCommandInvocation -CommandId $cmd.CommandId -InstanceId $instanceId
+
+                # Decode S3 URls
+
                 # Collect from S3 s3://aws-toolbox-workspace-eu-west-1-104552851521/ssm-run-command/2e4c1b5d-0f67-495c-8450-ae68c6af30a6/i-07d8ad5bb3c956cf0/awsrunPowerShellScript/0.awsrunPowerShellScript/stdout
                 $resultsKey = $s3KeyPrefix + "$($cmd.CommandId)/$($instanceId)/awsrunPowerShellScript/0.awsrunPowerShellScript"
 
                 $detail = New-Object PSObject -Property @{
-                    StandardOutputContent = Get-CommandOutputFromS3 -BucketName $s3Bucket -Key "$($resultsKey)/stdout"
-                    StandardErrorContent = Get-CommandOutputFromS3 -BucketName $s3Bucket -Key "$($resultsKey)/stderr"
+                    StandardOutputContent = Get-CommandOutputFromS3 -BucketName $s3Bucket.BucketName -Key "$($resultsKey)/stdout"
+                    StandardErrorContent = Get-CommandOutputFromS3 -BucketName $s3Bucket.BucketName -Key "$($resultsKey)/stderr"
                 }
             }
-
-            $detail = Get-SSMCommandInvocationDetail -CommandId $cmd.CommandId -InstanceId $instanceId
+            else
+            {
+                $detail = Get-SSMCommandInvocationDetail -CommandId $cmd.CommandId -InstanceId $instanceId
+            }
 
             $obj = $null
 

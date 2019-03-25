@@ -28,16 +28,31 @@ Get-ATEBInstanceLogs [-EnvironmentId <String>] [-OutputFolder <String>] [<Common
 ```
 
 ## DESCRIPTION
-{{Fill in the Description}}
+Retrieve CloudFormation Init and Elastic Beanstalk instance logs from one or more instances,
+and place them into a directory structure containing the logs for each selected instance.
 
 ## EXAMPLES
 
-### Example 1
-```powershell
-PS C:\> {{ Add example code here }}
+### EXAMPLE 1
+```
+Get-ATEBInstanceLogs -InstanceId i-00000000,i-00000001
 ```
 
-{{ Add example description here }}
+Get Elastic Beanstalk logs from given instances and write to EB-Logs folder in current location
+
+### EXAMPLE 2
+```
+Get-ATEBInstanceLogs -EnvironmentId e-a4d34fd -OutputFolder C:\Temp\EB-Logs
+```
+
+Get Elastic Beanstalk logs from instances in given EB environment by enviromnent ID and write to specified folder.
+
+### EXAMPLE 3
+```
+Get-ATEBInstanceLogs -EnvironmentName my-enviromn -OutputFolder C:\Temp\EB-Logs
+```
+
+Get Elastic Beanstalk logs from instances in given EB environment by name and write to specified folder.
 
 ## PARAMETERS
 
@@ -114,6 +129,7 @@ For more information, see about_CommonParameters (http://go.microsoft.com/fwlink
 
 ## NOTES
 For this to succeed, your instances must have the SSM agent installed (generally the default with recent AMIs),
-and they must have a profile which includes AmazonEC2RoleforSSM managed policy,
+and they must have a profile which includes AmazonEC2RoleforSSM managed policy, or sufficient individual rights
+to run the SSM command and write to S3.
 
 ## RELATED LINKS

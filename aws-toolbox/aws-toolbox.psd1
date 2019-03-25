@@ -44,6 +44,7 @@
         'Read-ATEC2LoadBalancerLogs'
         'Get-ATEBEnvironmentResourceList'
         'Get-ATEBInstanceLogs'
+        'Set-ATSSMWindowsAdminUser'
         'Invoke-ATSSMPowerShellScript'
         )
 

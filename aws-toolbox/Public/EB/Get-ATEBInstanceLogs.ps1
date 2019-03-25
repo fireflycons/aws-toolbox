@@ -4,6 +4,10 @@ function Get-ATEBInstanceLogs
     .SYNOPSIS
         Retrieve CloudFormation Init and Elastic Beanstalk instance logs from one or more instances.
 
+    .DESCRIPTION
+        Retrieve CloudFormation Init and Elastic Beanstalk instance logs from one or more instances,
+        and place them into a directory structure containing the logs for each selected instance.
+
     .PARAMETER InstanceId
         One or more instance Ids.
 
@@ -20,6 +24,18 @@ function Get-ATEBInstanceLogs
         For this to succeed, your instances must have the SSM agent installed (generally the default with recent AMIs),
         and they must have a profile which includes AmazonEC2RoleforSSM managed policy, or sufficient individual rights
         to run the SSM command and write to S3.
+
+    .EXAMPLE
+        Get-ATEBInstanceLogs -InstanceId i-00000000,i-00000001
+        Get Elastic Beanstalk logs from given instances and write to EB-Logs folder in current location
+
+    .EXAMPLE
+        Get-ATEBInstanceLogs -EnvironmentId e-a4d34fd -OutputFolder C:\Temp\EB-Logs
+        Get Elastic Beanstalk logs from instances in given EB environment by enviromnent ID and write to specified folder.
+
+    .EXAMPLE
+        Get-ATEBInstanceLogs -EnvironmentName my-enviromn -OutputFolder C:\Temp\EB-Logs
+        Get Elastic Beanstalk logs from instances in given EB environment by name and write to specified folder.
 #>
     [CmdletBinding(DefaultParameterSetName = 'ByEnvName')]
     param
@@ -60,53 +76,30 @@ function Get-ATEBInstanceLogs
         }
     )
 
-    # Filter down to running instances that have passed status checks
-    $instances = Get-EC2InstanceStatus -InstanceId $instances |
-        Where-Object {
+    $instanceTypes = Get-SSMEnabledInstances -InstanceId $instances
 
-        $passedStatusChecks = $_.Status.Status.Value -ieq 'ok' -and $_.SystemStatus.Status.Value -ieq 'ok'
-
-        if ($_.InstanceState.Code -eq 16 -and $passedStatusChecks)
-        {
-            $true
-        }
-        else
-        {
-            Write-Warning "$($_.InstanceId): $($_.InstanceState.Name), Passed Status Checks: $($passedStatusChecks)"
-            $false
-        }
-    } |
-        Select-Object -ExpandProperty InstanceId
-
-    if (($instances | Measure-Object).Count -eq 0)
+    if (-not $instanceTypes.Windows)
     {
-        Write-Warning "No instances are ready."
+        Write-Warning "No instances found that are Windows, running, passed status checks, SSM enabled and ready."
         return
     }
 
-    # Now sort Windows from non-Windows
-    $windowsInstances = Get-EC2Instance -InstanceId $instances |
-        Select-Object -ExpandProperty Instances |
-        Where-Object {
-        $_.Platform -ieq 'Windows'
-    } |
-        Select-Object -ExpandProperty InstanceId
-
-    $linuxInstances = Compare-Object -ReferenceObject $instances -DifferenceObject $windowsInstances -PassThru
-
-    if (($linuxInstances | Measure-Object).Count -gt 0)
+    if ($instanceTypes.NotReady)
     {
-        Write-Warning "Non-Windows instances not currently supported: $($linuxInstances -join ', ')."
+        Write-Warning "Instances not running/not passed ststus checks`n:   $($instanceTypes.NotReady -join ', ')"
     }
 
-    if (($windowsInstances | Measure-Object).Count -eq 0)
+    if ($instanceTypes.NonSSM)
     {
-        Write-Warning "No Windows instances found."
-        return
+        Write-Warning "Instances not SSM capaable or SSM not readys`n:   $($instanceTypes.NonSSM -join ', ')"
     }
 
+    if ($instanceTypes.NonWindows)
+    {
+        Write-Warning "Non-Windows instances currently not supported`n:   $($instanceTypes.NonWindows -join ', ')"
+    }
     # Send SSM commands to get all the logs
-    $results = Invoke-ATSSMPowerShellScript -InstanceId $windowsInstances -UseS3 -ScriptBlock {
+    $results = Invoke-ATSSMPowerShellScript -InstanceId $instanceTypes.Windows -UseS3 -ScriptBlock {
 
         ("C:\Program Files\Amazon\ElasticBeanstalk\Logs", "C:\cfn\log") |
             ForEach-Object {
@@ -129,17 +122,22 @@ function Get-ATEBInstanceLogs
 
         $instanceFolder = Join-Path $OutputFolder $_.InstanceId
 
-        if (-not (Test-Path -Path $instanceFolder -PathType Container))
+        if (Test-Path -Path $instanceFolder -PathType Container)
         {
-            New-Item -Path $instanceFolder -ItemType Directory -Force | Out-Null
+            # Clean out any previous results
+            Remove-Item $instanceFolder -Recurse -Force
         }
 
+        New-Item -Path $instanceFolder -ItemType Directory -Force | Out-Null
+
         $currentFile = $null
+
         $_.Stdout -split ([Environment]::NewLine) |
             ForEach-Object {
 
-            if ($_ -match '^---#LOG#\s+(?<filename>\w+)')
+            if ($_ -match '^---\#LOG\#\s+(?<filename>.*)')
             {
+                Write-Host "-" $Matches.filename
                 $currentFile = Join-Path $instanceFolder $Matches.filename
             }
             elseif ($null -ne $currentFile)

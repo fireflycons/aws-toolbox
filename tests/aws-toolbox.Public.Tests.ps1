@@ -183,6 +183,16 @@ InModuleScope -Module $ModuleName {
                 }
             }
 
+            Mock Get-SSMEnabledInstances -MockWith {
+
+                New-Object PSObject -Property @{
+                    Windows = $InstanceId
+                    NonWindows = $null
+                    NonSSM = $null
+                    NotReady = $null
+                }
+            }
+
             It 'Downloads logs for one instance' {
 
                 Get-ATEBInstanceLogs -InstanceId i-00000001 -OutputFolder 'TESTDRIVE:\Test1'
