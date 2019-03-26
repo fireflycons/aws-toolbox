@@ -101,6 +101,7 @@ function Get-ATEBInstanceLogs
     # Send SSM commands to get all the logs
     $results = Invoke-ATSSMPowerShellScript -InstanceId $instanceTypes.Windows -UseS3 -ScriptBlock {
 
+        # EB and CFN logs
         ("C:\Program Files\Amazon\ElasticBeanstalk\Logs", "C:\cfn\log") |
             ForEach-Object {
             Get-ChildItem $_ |
@@ -108,6 +109,27 @@ function Get-ATEBInstanceLogs
                 Write-Host "---#LOG# $($_.Name)"
                 Get-Content -Raw $_.FullName
             }
+        }
+
+        # IIS Logs
+        try
+        {
+            Import-Module WebAdministration
+
+            (Get-ChildItem IIS:\Sites) |
+            Foreach-Object {
+                $site = Get-Item $_.FullName
+                Get-ChildItem (Join-Path ([Environment]::ExpandEnvironmentVariables($site.logfile.directory), "W3SVC$($site.id)")) |
+                Foreach-Object {
+                    Write-Host "---#LOG# $($site.Name)_$($_.Name)"
+                    Get-Content -Raw $_.FullNamn
+                }
+            }
+        }
+        catch
+        {
+            Write-Host "---#LOG# IISLogRetrievalFailed.log"
+            Write-Host $_.Exception.Message
         }
     }
 
