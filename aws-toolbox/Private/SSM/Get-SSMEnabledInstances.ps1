@@ -15,6 +15,11 @@ function Get-SSMEnabledInstances
         - NonSSM        List of instances that aren't SSM enabled, or SSM not ready
         - NotReady      List of instances that are not running and passed status checks
 #>
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [string[]]$InstanceId
+    )
 
     $retval = New-Object PSObject -Property @{
         Windows    = $null
@@ -23,6 +28,7 @@ function Get-SSMEnabledInstances
         NotReady   = $null
     }
 
+    $instances = $InstanceId
     $notReadyInstances = $null
     $nonSsmInstances = $null
     $windowsInstances = $null

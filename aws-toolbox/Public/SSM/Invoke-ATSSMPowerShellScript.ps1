@@ -129,10 +129,32 @@ function Invoke-ATSSMPowerShellScript
         param
         (
             [string]$BucketName,
-            [string]$Key
+            [string]$Key,
+            [bool]$ExpectContent = $true
         )
 
         $tempfile = [IO.Path]::GetTempFileName()
+        $lastSize = 0
+        $thisSize = 0
+
+        # There is sometimes a delay in the results being fully streamed
+        for ($i = 0; $i -lt 30; ++$i)
+        {
+            $obj = Get-S3Object -BucketName $BucketName -Key $key
+
+            if ($obj)
+            {
+                $thisSize = $obj.Size
+            }
+
+            if (($lastSize -gt 0 -and $thisSize -eq $lastSize) -or ($thisSize -eq 0 -and $i -gt 3 -and -not $ExpectContent))
+            {
+                break
+            }
+
+            $lastSize = $thisSize
+            Sleep -Seconds 5
+        }
 
         try
         {
@@ -250,9 +272,7 @@ function Invoke-ATSSMPowerShellScript
 
         if ($UseS3)
         {
-            Write-Host "Waiting to ensure S3 upload completes"
-            Start-Sleep -Seconds 30
-            Write-Host "Continuing..."
+            Write-Host "Collecting results from S3..."
         }
 
         # Collect results
@@ -266,13 +286,12 @@ function Invoke-ATSSMPowerShellScript
                 $invocation = Get-SSMCommandInvocation -CommandId $cmd.CommandId -InstanceId $instanceId
 
                 # Decode S3 URls
-
-                # Collect from S3 s3://aws-toolbox-workspace-eu-west-1-104552851521/ssm-run-command/2e4c1b5d-0f67-495c-8450-ae68c6af30a6/i-07d8ad5bb3c956cf0/awsrunPowerShellScript/0.awsrunPowerShellScript/stdout
-                $resultsKey = $s3KeyPrefix + "$($cmd.CommandId)/$($instanceId)/awsrunPowerShellScript/0.awsrunPowerShellScript"
+                $stdout = $invocation.StandardOutputUrl | Split-S3Url
+                $stderr = $invocation.StandardErrorUrl | Split-S3Url
 
                 $detail = New-Object PSObject -Property @{
-                    StandardOutputContent = Get-CommandOutputFromS3 -BucketName $s3Bucket.BucketName -Key "$($resultsKey)/stdout"
-                    StandardErrorContent = Get-CommandOutputFromS3 -BucketName $s3Bucket.BucketName -Key "$($resultsKey)/stderr"
+                    StandardOutputContent = Get-CommandOutputFromS3 -BucketName $stdout.BucketName -Key $stdout.Key
+                    StandardErrorContent = Get-CommandOutputFromS3 -BucketName $stderr.BucketName -Key $stderr.Key -ExpectContent (-not ($invocation.Status -ieq 'Success'))
                 }
             }
             else

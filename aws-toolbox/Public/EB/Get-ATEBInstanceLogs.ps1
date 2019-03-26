@@ -116,11 +116,16 @@ function Get-ATEBInstanceLogs
         $OutputFolder = Join-Path (Get-Location).Path 'EB-Logs'
     }
 
+    # SSM writes outout to S3 in Unix text
+    $lf = [string]([char]10)
+
     # Write out logs
     $results |
         Foreach-Object {
 
-        $instanceFolder = Join-Path $OutputFolder $_.InstanceId
+        $thisInstance = $_.InstanceId
+        $instanceFolder = Join-Path $OutputFolder $thisInstance
+        Write-Host "Downloading logs for $thisInstance"
 
         if (Test-Path -Path $instanceFolder -PathType Container)
         {
@@ -132,18 +137,25 @@ function Get-ATEBInstanceLogs
 
         $currentFile = $null
 
-        $_.Stdout -split ([Environment]::NewLine) |
+        $_.Stdout -split $lf |
             ForEach-Object {
 
             if ($_ -match '^---\#LOG\#\s+(?<filename>.*)')
             {
-                Write-Host "-" $Matches.filename
+                Write-Host "  -" $Matches.filename
                 $currentFile = Join-Path $instanceFolder $Matches.filename
             }
             elseif ($null -ne $currentFile)
             {
                 $_ | Out-File -Append -FilePath $currentFile
             }
+        }
+
+        if (-not ([string]::IsNullOrEmpty($_.Stderr)))
+        {
+            # Write SSM STDERR output to it's own file
+            Write-Warning "Instance $($thisInstance): Errors were output by the commands run in SSM"
+            $_.Stderr -split $lf | Out-File (Join-Path $instanceFolder "ssm-errors.log")
         }
     }
 }

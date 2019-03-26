@@ -166,14 +166,15 @@ InModuleScope -Module $ModuleName {
 
             Mock Invoke-ATSSMPowerShellScript -MockWith {
 
+                $lf = [char]10
                 $InstanceIds |
                 Foreach-Object {
 
                     $sb = New-Object System.Text.StringBuilder
-                    $sb.AppendLine('---#LOG# log1.log').
-                        AppendLine('log 1 content').
-                        AppendLine('---#LOG# log2.log').
-                        AppendLine('log 2 content') | Out-Null
+                    $sb.Append("---#LOG# log1.log$lf").
+                        Append("log 1 content$lf").
+                        Append("---#LOG# log2.log$lf").
+                        Append("log 2 content$lf") | Out-Null
 
                     New-Object PSObject -Property @{
                         InstanceId = $_
