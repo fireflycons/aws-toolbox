@@ -103,6 +103,9 @@ function Get-ATEBInstanceLogs
 
         # EB and CFN logs
         ("C:\Program Files\Amazon\ElasticBeanstalk\Logs", "C:\cfn\log") |
+            Where-Object {
+                Test-Path -Path $_ -PathType Container
+            } |
             ForEach-Object {
             Get-ChildItem $_ |
                 Foreach-Object {
@@ -117,12 +120,12 @@ function Get-ATEBInstanceLogs
             Import-Module WebAdministration
 
             (Get-ChildItem IIS:\Sites) |
-            Foreach-Object {
+                Foreach-Object {
                 $site = Get-Item $_.FullName
                 Get-ChildItem (Join-Path ([Environment]::ExpandEnvironmentVariables($site.logfile.directory), "W3SVC$($site.id)")) |
-                Foreach-Object {
-                    Write-Host "---#LOG# $($site.Name)_$($_.Name)"
-                    Get-Content -Raw $_.FullNamn
+                    Foreach-Object {
+                    Write-Host "---#LOG# IIS_$($site.Name.Replace(' ', '_'))_$($_.Name)"
+                    Get-Content -Raw $_.FullName
                 }
             }
         }
@@ -130,6 +133,15 @@ function Get-ATEBInstanceLogs
         {
             Write-Host "---#LOG# IISLogRetrievalFailed.log"
             Write-Host $_.Exception.Message
+        }
+
+        # Event logs
+        ('Application', 'System') |
+            Foreach-Object {
+            Write-Host = "---#LOG# EventLog.$($_).csv"
+            Get-EventLog -LogName $_ -After ( [DateTime]::Now - [timespan]::FromMinutes(60) ) |
+                Select-Object Index, TimeGenerated, EntryType, Source, InstanceId, Message |
+                ConvertTo-Csv -NoTypeInformation
         }
     }
 
