@@ -77,106 +77,6 @@ function Invoke-ATSSMPowerShellScript
 
     )
 
-    #region Local Functions
-
-    function Split-Array
-    {
-        param
-        (
-            [Array]$Array,
-
-            [Parameter(ParameterSetName = 'Parts')]
-            [int]$Parts,
-
-            [Parameter(ParameterSetName = 'Size')]
-            [int]$Size
-        )
-
-        switch ($PSCmdlet.ParameterSetName)
-        {
-            'Parts'
-            {
-                $partSize = [Math]::Ceiling($Array.count / $parts)
-            }
-
-            'Size'
-            {
-                $partSize = $size
-                $Parts = [Math]::Ceiling($Array.count / $size)
-            }
-        }
-
-        $outArray = @()
-
-        for ($i=1; $i -le $Parts; $i++)
-        {
-            $start = (($i - 1) * $partSize)
-            $end = ($i * $partSize) - 1
-
-            if ($end -ge $Array.count - 1)
-            {
-                $end = $Array.count - 1
-            }
-
-            $outArray += ,@($Array[$start..$end])
-        }
-
-        return ,$outArray
-    }
-
-    function Get-CommandOutputFromS3
-    {
-        param
-        (
-            [string]$BucketName,
-            [string]$Key,
-            [bool]$ExpectContent = $true
-        )
-
-        $tempfile = [IO.Path]::GetTempFileName()
-        $lastSize = 0
-        $thisSize = 0
-
-        # There is sometimes a delay in the results being fully streamed
-        for ($i = 0; $i -lt 30; ++$i)
-        {
-            $obj = Get-S3Object -BucketName $BucketName -Key $key
-
-            if ($obj)
-            {
-                $thisSize = $obj.Size
-            }
-
-            if (($lastSize -gt 0 -and $thisSize -eq $lastSize) -or ($thisSize -eq 0 -and $i -gt 3 -and -not $ExpectContent))
-            {
-                break
-            }
-
-            $lastSize = $thisSize
-            Sleep -Seconds 5
-        }
-
-        try
-        {
-            Read-S3Object -BucketName $BucketName -Key $Key -File $tempfile | Out-Null
-            $text = Get-Content -Raw $tempfile
-            return $text
-        }
-        catch
-        {
-            return [string]::Empty
-        }
-        finally
-        {
-            if (Test-Path -Path $tempFile -PathType Leaf)
-            {
-                Remove-Item $tempfile
-            }
-        }
-    }
-
-    #endregion
-
     if ($UseS3)
     {
         $s3Bucket = Get-WorkspaceBucket
@@ -285,13 +185,9 @@ function Invoke-ATSSMPowerShellScript
             {
                 $invocation = Get-SSMCommandInvocation -CommandId $cmd.CommandId -InstanceId $instanceId
 
-                # Decode S3 URls
-                $stdout = $invocation.StandardOutputUrl | Split-S3Url
-                $stderr = $invocation.StandardErrorUrl | Split-S3Url
-
                 $detail = New-Object PSObject -Property @{
-                    StandardOutputContent = Get-CommandOutputFromS3 -BucketName $stdout.BucketName -Key $stdout.Key
-                    StandardErrorContent = Get-CommandOutputFromS3 -BucketName $stderr.BucketName -Key $stderr.Key -ExpectContent (-not ($invocation.Status -ieq 'Success'))
+                    StandardOutputContent = Get-ContentFromS3 -S3Url $invocation.StandardOutputUrl
+                    StandardErrorContent = Get-ContentFromS3 -S3Url $invocation.StandardErrorUrl -ExpectContent (-not ($invocation.Status -ieq 'Success'))
                 }
             }
             else
