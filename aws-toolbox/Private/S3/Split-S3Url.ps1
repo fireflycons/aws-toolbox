@@ -19,18 +19,16 @@ function Split-S3Url
     param
     (
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
-        [string]$S3Url
+        [Uri]$S3Url
     )
 
-    $u = [uri]$S3Url
-
-    if (('https', 'http') -inotcontains $u.Scheme -or -not $u.Host.StartsWith('s3-'))
+    if (('https', 'http') -inotcontains $u.Scheme -or -not $S3Url.Host.StartsWith('s3-'))
     {
         throw "$($S3Url): Not an S3 URL"
     }
 
     New-Object PSObject -Property @{
-        BucketName = $u.Segments[1].Trim('/')
-        Key        = ($u.Segments | Select-Object -Skip 2 ) -join [string]::Empty
+        BucketName = $S3Url.Segments[1].Trim('/')
+        Key        = ($S3Url.Segments | Select-Object -Skip 2 ) -join [string]::Empty
     }
 }
