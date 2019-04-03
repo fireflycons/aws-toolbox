@@ -17,7 +17,7 @@ function Get-SSMEnabledInstances
 #>
     param
     (
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
         [string[]]$InstanceId
     )
 
@@ -96,6 +96,10 @@ function Get-SSMEnabledInstances
     if ($windowsInstances)
     {
         $nonWindowsInstances = Compare-Object -ReferenceObject $instances -DifferenceObject $windowsInstances -PassThru
+    }
+    else
+    {
+        $nonWindowsInstances = $instances
     }
 
     if ($windowsInstances)

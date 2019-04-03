@@ -22,7 +22,7 @@ function Split-S3Url
         [Uri]$S3Url
     )
 
-    if (('https', 'http') -inotcontains $u.Scheme -or -not $S3Url.Host.StartsWith('s3-'))
+    if (('https', 'http') -inotcontains $S3Url.Scheme -or -not $S3Url.Host.StartsWith('s3-'))
     {
         throw "$($S3Url): Not an S3 URL"
     }

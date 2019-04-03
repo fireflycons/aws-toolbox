@@ -11,7 +11,7 @@
     RootModule        = 'aws-toolbox.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '0.1.6'
+    ModuleVersion     = '0.1.7'
 
     # ID used to uniquely identify this module
     GUID              = 'e3c04d58-4e7d-4572-9e81-3b3a93f1a518'
@@ -46,6 +46,7 @@
         'Get-ATEBInstanceLogs'
         'Set-ATSSMWindowsAdminUser'
         'Invoke-ATSSMPowerShellScript'
+        'Invoke-ATSSMShellScript'
         )
 
     # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
@@ -78,7 +79,7 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = 'Initial release.'
+            ReleaseNotes = 'New functions added.'
 
         } # End of PSData hashtable
 
