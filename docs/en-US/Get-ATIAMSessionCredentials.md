@@ -28,8 +28,8 @@ Get-ATIAMSessionCredentials [-Bash] [-ClipBoard] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
-If your organisaation uses federated authentication (SAML etc) for API authentication with AWS,
-this cmdlet enables you to get a set of temoprary keys for use with applications that do not
+If your organisation uses federated authentication (SAML etc) for API authentication with AWS,
+this cmdlet enables you to get a set of temporary keys for use with applications that do not
 understand/support this authentication method.
 
 Various means of acquiring/storing the credentials are provided by this cmdlet.
