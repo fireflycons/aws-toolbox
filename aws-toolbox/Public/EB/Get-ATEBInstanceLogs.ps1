@@ -86,12 +86,12 @@ function Get-ATEBInstanceLogs
 
     if ($instanceTypes.NotReady)
     {
-        Write-Warning "Instances not running/not passed ststus checks`n:   $($instanceTypes.NotReady -join ', ')"
+        Write-Warning "Instances not running/not passed status checks`n:   $($instanceTypes.NotReady -join ', ')"
     }
 
     if ($instanceTypes.NonSSM)
     {
-        Write-Warning "Instances not SSM capaable or SSM not readys`n:   $($instanceTypes.NonSSM -join ', ')"
+        Write-Warning "Instance is not SSM capable or SSM is not ready`n:   $($instanceTypes.NonSSM -join ', ')"
     }
 
     if ($instanceTypes.NonWindows)
