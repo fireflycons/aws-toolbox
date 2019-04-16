@@ -9,6 +9,39 @@ Import-Module $manifestFile
 
 InModuleScope 'aws-toolbox' {
 
+    Describe 'Utils' {
+
+        Context 'Get-CurrentRegion' {
+
+            BeforeEach {
+
+                if (Test-Path -Path variable:StoredAWSRegion)
+                {
+                    Remove-Item  -Path variable:StoredAWSRegion
+                }
+            }
+
+            It 'Should throw if default region never initialised' {
+
+                if ($null -eq [Amazon.Runtime.FallbackRegionFactory]::GetRegionEndpoint())
+                {
+                    { Get-CurrentRegion } | Should -Throw
+                }
+                else
+                {
+                    Set-ItResult -Inconclusive -Because "you have already initialised a region (should not be the case on AppVeyor)."
+                }
+            }
+
+            It 'Should return region set by Set-DefaultAWSRegion if no specific region passed' {
+
+                Set-DefaultAWSRegion -Region us-east-2
+                Get-CurrentRegion | Should -Be 'us-east-2'
+            }
+        }
+
+    }
+
     Describe 'S3' {
 
         Context 'Get-LoadBalancerAccessLogs' {
@@ -83,6 +116,84 @@ InModuleScope 'aws-toolbox' {
                 # At 15 min interval, should be 2 or 3 returned
                 ($logs | Measure-Object).Count | Should BeIn @(2,3)
             }
+        }
+
+        Context 'S3 Workspace Bucket' {
+
+            Mock Get-STSCallerIdentity -MockWith {
+                New-Object PSObject -Property @{
+                    Account = '0123456789012'
+                }
+            }
+
+            It 'Should return bucket details if bucket exists' {
+
+                $region = 'us-east-1'
+                Set-DefaultAWSRegion -Region $region
+
+                $expectedBucketName = "aws-toolbox-workspace-$($region)-000000000000"
+                $expectedBucketUrl = [uri]"https://s3.$($region).amazonaws.com/$expectedBucketName"
+
+                Mock -CommandName Get-STSCallerIdentity -MockWith {
+
+                    New-Object PSObject -Property @{
+                        Account = '000000000000'
+                    }
+                }
+
+                Mock -CommandName Get-S3BucketLocation -MockWith {
+
+                    New-Object PSObject -Property @{
+                        Value = $region
+                    }
+                }
+
+                $result = Get-WorkspaceBucket
+                Assert-MockCalled -CommandName Get-STSCallerIdentity -Times 1
+                $result.BucketName | Should Be $expectedBucketName
+                $result.BucketUrl | Should Be $expectedBucketUrl
+            }
+
+            It 'Should create bucket if bucket does not exist' {
+
+                $region = 'us-east-1'
+                Set-DefaultAWSRegion -Region $region
+
+                $expectedBucketName = "aws-toolbox-workspace-$($region)-000000000000"
+                $expectedBucketUrl = [uri]"https://s3.$($region).amazonaws.com/$expectedBucketName"
+                $script:callCount = 0
+
+                Mock -CommandName Get-STSCallerIdentity -MockWith {
+
+                    New-Object PSObject -Property @{
+                        Account = '000000000000'
+                    }
+                }
+
+                Mock -CommandName Get-S3BucketLocation -MockWith {
+
+                    if ($script:callCount++ -eq 0)
+                    {
+                        throw "The specified bucket does not exist"
+                    }
+
+                    New-Object PSObject -Property @{
+                        Value = $region
+                    }
+                }
+
+                Mock -CommandName New-S3Bucket -MockWith {
+                    $true
+                }
+
+                $result = Get-WorkspaceBucket
+                $result.BucketName | Should Be $expectedBucketName
+                $result.BucketUrl | Should Be $expectedBucketUrl
+
+                Assert-MockCalled -CommandName Get-S3BucketLocation -Times 2
+                Assert-MockCalled -CommandName New-S3Bucket -Times 1
+            }
+
         }
     }
 }
