@@ -30,9 +30,9 @@ Properties {
     }
 
     $DefaultLocale = 'en-US'
-    $DocsRootDir = "$PSScriptRoot\docs"
+    $DocsRootDir = Join-Path $PSScriptRoot docs
     $ModuleName = "aws-toolbox"
-    $ModuleOutDir = "$PSScriptRoot\aws-toolbox"
+    $ModuleOutDir = Join-Path $PSScriptRoot aws-toolbox
 
 }
 
@@ -90,10 +90,10 @@ Task Test -Depends Init {
 
     # Gather test results. Store them in a variable and file
     $pesterParameters = @{
-        Path         = "$ProjectRoot\Tests"
+        Path         = Join-Path $ProjectRoot tests
         PassThru     = $true
         OutputFormat = "NUnitXml"
-        OutputFile   = "$ProjectRoot\$TestFile"
+        OutputFile   = Join-Path $ProjectRoot $TestFile
     }
 
     if (-Not $IsWindows) { $pesterParameters["ExcludeTag"] = "WindowsOnly" }
@@ -104,10 +104,10 @@ Task Test -Depends Init {
     {
         (New-Object 'System.Net.WebClient').UploadFile(
             "https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)",
-            "$ProjectRoot\$TestFile" )
+            (Join-Path $ProjectRoot $TestFile) )
     }
 
-    Remove-Item "$ProjectRoot\$TestFile" -Force -ErrorAction SilentlyContinue
+    Remove-Item (Join-Path $ProjectRoot $TestFile) -Force -ErrorAction SilentlyContinue
 
     # Failed tests?
     # Need to tell psake or it will proceed to the deployment. Danger!

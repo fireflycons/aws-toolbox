@@ -63,7 +63,7 @@ InModuleScope -Module $ModuleName {
 
                 Mock -CommandName Read-S3Object -MockWith {
 
-                    Copy-Item "$($global:scriptRoot)\Assets\elb.log" $File
+                    Copy-Item ([IO.Path]::Combine($global:scriptRoot, "Assets", "elb.log")) $File
                 }
 
                 Mock -CommandName Get-ELBLoadBalancerAttribute -MockWith {
@@ -112,7 +112,7 @@ InModuleScope -Module $ModuleName {
 
                 Mock -CommandName Read-S3Object -MockWith {
 
-                    Copy-Item "$($global:scriptRoot)\Assets\alb.log.gz" $File
+                    Copy-Item ([IO.Path]::Combine($global:scriptRoot, "Assets", "alb.log.gz")) $File
                 }
 
                 Mock -CommandName Get-ELB2LoadBalancerAttribute -MockWith {
