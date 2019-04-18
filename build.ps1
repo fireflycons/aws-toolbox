@@ -112,12 +112,6 @@ try
 
     Set-BuildEnvironment -ErrorAction SilentlyContinue
 
-    if (${env:BHBuildSystem} -ine 'Unknown')
-    {
-        # Seems AppVeyor's version of this is quite out of date
-        Install-Module AWSPowerShell -Force -AllowClobber -SkipPublisherCheck -Scope CurrentUser
-    }
-
     Invoke-psake -buildFile (Join-Path $PSScriptRoot psake.ps1) -taskList $Task -nologo
     exit ( [int]( -not $psake.build_success ) )
 }
