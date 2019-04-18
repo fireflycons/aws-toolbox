@@ -1,9 +1,25 @@
-$ModuleName = 'aws-toolbox'
+$ModuleName = $(
+    if ($PSVersionTable.PSEdition -ieq 'Core')
+    {
+        'aws-toolbox.netcore'
+    }
+    else
+    {
+        'aws-toolbox'
+    }
+)
 
+# http://www.lazywinadmin.com/2016/05/using-pester-to-test-your-manifest-file.html
+# Make sure one or multiple versions of the module are not loaded
 Get-Module -Name $ModuleName | Remove-Module
 
 # Find the Manifest file
-$manifestFile = "$(Split-path (Split-Path -Parent -Path $MyInvocation.MyCommand.Definition))\$ModuleName\$ModuleName.psd1"
+$ManifestFile = Get-ChildItem -Path (Split-path (Split-Path -Parent -Path $MyInvocation.MyCommand.Definition)) -Recurse -Filter "$ModuleName.psd1" | Select-Object -ExpandProperty FullName
+
+if (($ManifestFile | Measure-Object).Count -ne 1)
+{
+    throw "Cannot locate $ModuleName.psd1"
+}
 
 # Import the module and store the information about the module
 $ModuleInformation = Import-Module -Name $manifestFile -PassThru

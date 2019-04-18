@@ -9,7 +9,7 @@
 #   - ModuleName
 #     - ModuleName.psd1
 
-# Nuget key in $ENV:NugetApiKey
+# Nuget key in $ENV:NuGetApiKey
 
 # Set-BuildEnvironment from BuildHelpers module has populated ENV:BHProjectName
 
@@ -23,7 +23,7 @@ if ($ENV:BHProjectName -and $ENV:BHProjectName.Count -eq 1)
             To PSGallery
             Tagged Production
             WithOptions @{
-                ApiKey = $ENV:NugetApiKey
+                ApiKey = $ENV:NuGetApiKey
             }
         }
     }
