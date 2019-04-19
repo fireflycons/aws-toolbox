@@ -9,25 +9,11 @@ function Get-WorkspaceBucket
         - BucketName
         - BucketUrl
 #>
-    $defaultRegionsMap = @{
-        CN  = 'cn-north-1'
-        EU  = 'eu-west-1'
-        GOV = 'us-gov-west-1'
-        SFO = 'us-west-1'
-        US  = 'us-east-1'
-
-    }
-
     $bucketName = "aws-toolbox-workspace-$(Get-CurrentRegion)-$((Get-STSCallerIdentity).Account)"
 
     try
     {
-        $location = Get-S3BucketLocation -BucketName $bucketName | Select-Object -ExpandProperty Value
-
-        if ($defaultRegionsMap.ContainsKey($location))
-        {
-            $location = $defaultRegionsMap[$location]
-        }
+        $location = Get-BucketLocation -BucketName $bucketName
 
         return New-Object psobject -Property @{
             BucketName = $bucketName
@@ -44,12 +30,7 @@ function Get-WorkspaceBucket
 
     if ($response)
     {
-        $location = Get-S3BucketLocation -BucketName $bucketName | Select-Object -ExpandProperty Value
-
-        if ($defaultRegionsMap.ContainsKey($location))
-        {
-            $location = $defaultRegionsMap[$location]
-        }
+        $location = Get-BucketLocation -BucketName $bucketName
 
         return New-Object psobject -Property @{
             BucketName = $bucketName

@@ -61,7 +61,7 @@ function Get-LoadBalancerAccessLogs
         $StartTime = $EndTime - [timespan]::FromMinutes($Last)
     }
 
-    $region = Get-S3BucketLocation -BucketName $Bucket | Select-Object -ExpandProperty Value
+    $region = Get-BucketLocation -BucketName $Bucket
 
     if (-not [string]::IsNullOrEmpty($KeyPrefix))
     {
