@@ -86,11 +86,8 @@ function Get-LoadBalancerAccessLogs
 
             if ($_.Key -match '(?<year>\d{4})(?<month>\d{2})(?<day>\d{2})T(?<hour>\d{2})(?<minute>\d{2})Z_(?<ip>\d+\.\d+\.\d+\.\d+)')
             {
-                $et = New-Object DateTime -ArgumentList @($Matches.year, $Matches.month, $Matches.day, $Matches.Hour, $Matches.minute, 0, 0, 'Utc')
-                $ip = [System.Net.IPAddress]::Parse($Matches.ip).IPAddressToString
-                Write-Host "$($Matches.Hour):$($Matches.Minute) $et"
-                $_ | Add-Member -PassThru -MemberType NoteProperty -Name EndTime -Value $et |
-                    Add-Member -PassThru -MemberType NoteProperty -Name NodeIp -Value $ip
+                $_ | Add-Member -PassThru -MemberType NoteProperty -Name EndTime -Value (New-Object DateTime -ArgumentList @($Matches.year, $Matches.month, $Matches.day, $Matches.hour, $Matches.minute, 0, 0, 'Utc')) |
+                    Add-Member -PassThru -MemberType NoteProperty -Name NodeIp -Value ([System.Net.IPAddress]::Parse($Matches.ip).IPAddressToString)
             }
         }
     }  |
