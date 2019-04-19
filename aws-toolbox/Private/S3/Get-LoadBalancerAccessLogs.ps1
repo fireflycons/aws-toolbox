@@ -72,8 +72,6 @@ function Get-LoadBalancerAccessLogs
         $KeyPrefix = "AWSLogs"
     }
 
-    Write-Host "Start: $StartTime, End: $EndTime"
-
     $LoadBalancerId = $LoadBalancerId.Replace('/', '.')
     $startPrefix = "$KeyPrefix/$AccountId/elasticloadbalancing/$region/$($StartTime.ToString('yyyy/MM/dd'))/$($AccountId)_elasticloadbalancing_$($region)_$($LoadBalancerId)"
     $endPrefix = "$KeyPrefix/$AccountId/elasticloadbalancing/$region/$($EndTime.ToString('yyyy/MM/dd'))/$($AccountId)_elasticloadbalancing_$($region)_$($LoadBalancerId)"
