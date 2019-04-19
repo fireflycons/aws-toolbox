@@ -71,7 +71,7 @@
             ExternalModuleDependencies = @('AWSPowerShell')
 
             # A URL to the license for this module.
-            LicenseUri                 = 'https://github.com/fireflycons/aws-toolbox/LICENSE'
+            LicenseUri                 = 'https://github.com/fireflycons/aws-toolbox/blob/master/LICENCE'
 
             # A URL to the main website for this project.
             ProjectUri                 = 'https://github.com/fireflycons/aws-toolbox'
@@ -80,7 +80,7 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = 'New functions added.'
+            ReleaseNotes = 'https://github.com/fireflycons/aws-toolbox/blob/master/RELEASENOTES.md'
 
         } # End of PSData hashtable
 

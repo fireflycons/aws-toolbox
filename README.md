@@ -1,8 +1,9 @@
 # aws-toolbox
 
-|Branch|Status|
+||Branch||Status||
 |------|------|
-|master|[![Build status](https://ci.appveyor.com/api/projects/status/t6p8w8pfvy2emlr9?svg=true)](https://ci.appveyor.com/project/fireflycons/aws-toolbox/branch/master)|
+|master|[![Build status](https://ci.appveyor.com/api/projects/status/t6p8w8pfvy2emlr9/branch/master?svg=true)](https://ci.appveyor.com/project/fireflycons/aws-toolbox/branch/master)|
+|dev|[![Build status](https://ci.appveyor.com/api/projects/status/t6p8w8pfvy2emlr9/branch/dev?svg=true)](https://ci.appveyor.com/project/fireflycons/aws-toolbox/branch/dev)|
 
 # Disclaimer
 
