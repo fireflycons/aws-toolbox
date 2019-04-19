@@ -25,6 +25,16 @@ Import-Module $manifestFile
 
 InModuleScope $ModuleName {
 
+    Describe 'Time test' {
+        It 'Should set correct time' {
+
+            $dt = [DateTime]::UtcNow
+            $d2 = New-Object DateTime -ArgumentList ($dt.Year, $dt.Month, $dt.Day, $dt.Hour, $dt.Minute, $dt.Second, $dt.Millisecond, 'Utc')
+
+            Write-Host "$dt1 $dt2"
+            $dt2 - $dt1 | Should -Be 0
+        }
+    }
     Describe 'Utils' {
 
         Context 'Get-CurrentRegion' {
