@@ -69,8 +69,8 @@ InModuleScope $ModuleName {
 
             Mock -CommandName Get-S3Object -MockWith {
 
-                Write-Host "Mock Get-S3Object: Prefix: $($KeyPrefix)"
-                
+                #Write-Host "Mock Get-S3Object: Prefix: $($KeyPrefix)"
+
                 $objects =@(
                     New-Object PSObject -Property @{ Key='my-app/AWSLogs/123456789012/elasticloadbalancing/us-east-2/2014/02/15/123456789012_elasticloadbalancing_us-east-2_my-loadbalancer_20140215T2340Z_172.160.001.192_20EMOTPKSW.log' }
 
@@ -115,7 +115,7 @@ InModuleScope $ModuleName {
 
                 $returnedObjects = $objects | Where-Object { $_.Key.StartsWith($KeyPrefix) }
 
-                Write-Host "Mock Get-S3Object: Return count: $(($returnedObjects | Measure-Object).Count)"
+                #Write-Host "Mock Get-S3Object: Return count: $(($returnedObjects | Measure-Object).Count)"
 
                 $returnedObjects
             }

@@ -91,5 +91,9 @@ function Get-LoadBalancerAccessLogs
     }  |
         Where-Object {
         $_.EndTime -le $EndTime -and $_.EndTime -ge $StartTime
+    } |
+    ForEach-Object {
+        Write-Host $_.EndTime
+        $_
     }
 }
