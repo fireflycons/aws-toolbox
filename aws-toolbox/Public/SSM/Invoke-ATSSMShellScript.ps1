@@ -38,6 +38,10 @@ function Invoke-ATSSMShellScript
             - ResultObject If -AsJson and the result was successfully parsed, then an object else NULL
             - ResultText   Standard Output returned by the script (Write-Host etc.)
 
+        .EXAMPLE
+            Invoke-ATSSMPowerShellScript -InstanceIds ('i-00000001', 'i-00000002') -CommandText "ls -la /"
+            Runs the command on the listed instances.
+
         .NOTES
             aws-toolbox uses a working bucket for passing results through S3 which will be created if not found.
             Format of bucket name is aws-toolbox-workspace-REGIONNAME-AWSACCOUNTID
