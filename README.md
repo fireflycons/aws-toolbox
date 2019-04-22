@@ -1,6 +1,6 @@
 # aws-toolbox
 
-||Branch||Status||
+|Branch|Status|
 |------|------|
 |master|[![Build status](https://ci.appveyor.com/api/projects/status/t6p8w8pfvy2emlr9/branch/master?svg=true)](https://ci.appveyor.com/project/fireflycons/aws-toolbox/branch/master)|
 |dev|[![Build status](https://ci.appveyor.com/api/projects/status/t6p8w8pfvy2emlr9/branch/dev?svg=true)](https://ci.appveyor.com/project/fireflycons/aws-toolbox/branch/dev)|
@@ -13,7 +13,7 @@ I won't be held responsible if you blow up your production stacks.
 
 # Installation
 
-This module is published in the [PowerShell Gallery](https://www.powershellgallery.com/packages?q=aws-toolbox)
+This module is published in the PowerShell Gallery for [Windows PowerShell](https://www.powershellgallery.com/packages?q=aws-toolbox) and [PowerShell Core/Linux](https://www.powershellgallery.com/packages?q=aws-toolbox.netcore)
 
 # What this is
 A module containing a collection of PowerShell scripts I've created to ease various tasks.
