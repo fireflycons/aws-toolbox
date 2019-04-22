@@ -5,7 +5,7 @@ function Get-ATEBEnvironmentResourceList
             Gets a list of resources associated Elastic Beanstalk environents.
 
         .DESCRIPTION
-            This command gets essential information about the resources in a beanstalk environment
+            This command gets essential information about the resources in a beanstalk environment.
             Resource information is retured as an object by default so you can do further processing,
             however addition of -AsText switch instead prints out the information and the command returns nothing
 
@@ -20,6 +20,26 @@ function Get-ATEBEnvironmentResourceList
 
         .PARAMETER AsText
             Print the environment information to the console instead of returning it as an object
+
+        .EXAMPLE
+            Get-ATEBEnvironmentResourceList -EnvironmentName production -AsText
+            Lists the resources of the given environment to the console.
+
+        .EXAMPLE
+            Get-ATEBEnvironmentResourceList -EnvironmentId e-edxny3zkbp -AsText
+            Lists the resources of the given environment to the console.
+
+        .EXAMPLE
+            Get-ATEBEnvironmentResourceList -ApplicationName MYApplication -AsText
+            Lists the resources of all environments in the given EB application to the console.
+
+        .EXAMPLE
+            Invoke-ATSSMPowerShellScript -InstanceIds (Get-ATEBEnvironmentResourceList -EnvironmentName production).Instances.InstanceId -AsJson -ScriptBlock { Invoke-RestMethod http://localhost/status | ConvertTo-Json }
+            Used in conjunction with Invoke-ATSSMPowerShellScript, send a command to all instances in the given Windows environment.
+
+        .EXAMPLE
+            Invoke-ATSSMShellScript -InstanceIds (Get-ATEBEnvironmentResourceList -EnvironmentName production).Instances.InstanceId -CommandText "ls -la /"
+            Used in conjunction with Invoke-ATSSMShellScript, send a command to all instances in the given Linux environment.
 
         .OUTPUTS
             [PSObject[]] Information about each environment returned

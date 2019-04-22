@@ -28,18 +28,46 @@ Get-ATEBEnvironmentResourceList [-ApplicationName <String>] [-AsText] [<CommonPa
 ```
 
 ## DESCRIPTION
-This command gets essential information about the resources in a beanstalk environment
+This command gets essential information about the resources in a beanstalk environment.
 Resource information is retured as an object by default so you can do further processing,
 however addition of -AsText switch instead prints out the information and the command returns nothing
 
 ## EXAMPLES
 
-### Example 1
-```powershell
-PS C:\> {{ Add example code here }}
+### EXAMPLE 1
+```
+Get-ATEBEnvironmentResourceList -EnvironmentName production -AsText
 ```
 
-{{ Add example description here }}
+Lists the resources of the given environment to the console.
+
+### EXAMPLE 2
+```
+Get-ATEBEnvironmentResourceList -EnvironmentId e-edxny3zkbp -AsText
+```
+
+Lists the resources of the given environment to the console.
+
+### EXAMPLE 3
+```
+Get-ATEBEnvironmentResourceList -ApplicationName MYApplication -AsText
+```
+
+Lists the resources of all environments in the given EB application to the console.
+
+### EXAMPLE 4
+```
+Invoke-ATSSMPowerShellScript -InstanceIds (Get-ATEBEnvironmentResourceList -EnvironmentName production).Instances.InstanceId -AsJson -ScriptBlock { Invoke-RestMethod http://localhost/status | ConvertTo-Json }
+```
+
+Used in conjunction with Invoke-ATSSMPowerShellScript, send a command to all instances in the given Windows environment.
+
+### EXAMPLE 5
+```
+Invoke-ATSSMShellScript -InstanceIds (Get-ATEBEnvironmentResourceList -EnvironmentName production).Instances.InstanceId -CommandText "ls -la /"
+```
+
+Used in conjunction with Invoke-ATSSMShellScript, send a command to all instances in the given Linux environment.
 
 ## PARAMETERS
 

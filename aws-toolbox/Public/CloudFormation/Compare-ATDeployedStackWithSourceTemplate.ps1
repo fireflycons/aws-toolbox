@@ -27,6 +27,14 @@
         then the function does not return until the diff tool has been closed.
         If not set, then the temp file used to store AWS's view of the template is not cleaned up.
 
+    .EXAMPLE
+        Compare-ATDeployedStackWithSourceTemplate -StackName my-stack -TemplateFilePath .\my-stack.json -WaitForDiff
+        Runs drift detection, then compares the text of my-stack.json with the current template stored with my-stack in CloudFormation.  Waits for you to close the diff tool.
+
+    .EXAMPLE
+        Compare-ATDeployedStackWithSourceTemplate -StackName my-stack -TemplateURI https://s3-eu-west-1.amazonaws.com/my-bucket/my-stack.json -WaitForDiff
+        Runs drift detection, then compares the text of my-stack.json located in S3 with the current template stored with my-stack in CloudFormation.  Waits for you to close the diff tool.
+
     .LINK
         http://winmerge.org/
 #>

@@ -40,12 +40,21 @@ it will fall back to git diff, which is the default on non-windows systems.
 
 ## EXAMPLES
 
-### Example 1
-```powershell
-PS C:\> {{ Add example code here }}
+### EXAMPLE 1
+```
+Compare-ATDeployedStackWithSourceTemplate -StackName my-stack -TemplateFilePath .\my-stack.json -WaitForDiff
 ```
 
-{{ Add example description here }}
+Runs drift detection, then compares the text of my-stack.json with the current template stored with my-stack in CloudFormation. 
+Waits for you to close the diff tool.
+
+### EXAMPLE 2
+```
+Compare-ATDeployedStackWithSourceTemplate -StackName my-stack -TemplateURI https://s3-eu-west-1.amazonaws.com/my-bucket/my-stack.json -WaitForDiff
+```
+
+Runs drift detection, then compares the text of my-stack.json located in S3 with the current template stored with my-stack in CloudFormation. 
+Waits for you to close the diff tool.
 
 ## PARAMETERS
 

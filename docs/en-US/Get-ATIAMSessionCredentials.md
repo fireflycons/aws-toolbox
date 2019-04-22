@@ -38,12 +38,28 @@ You must first authenticate with AWS using the account you need keys for via Set
 
 ## EXAMPLES
 
-### Example 1
-```powershell
-PS C:\> {{ Add example code here }}
+### EXAMPLE 1
+```
+Get-ATIAMSessionCredentials
 ```
 
-{{ Add example description here }}
+With no parameters (or with -SetLocal), sets up the AWS environment variables in the current shell
+
+### EXAMPLE 2
+```
+Get-ATIAMSessionCredentials -Bash -ClipBoard
+```
+
+Copies shell EXPORT statements to create the AWS environment variables for sh/bash direct to clipboard.
+Paste into your shell environment.
+
+### EXAMPLE 3
+```
+Get-ATIAMSessionCredentials -Ruby -ClipBoard
+```
+
+Copies ruby ENV statements to create the AWS environment variables for ruby direct to clipboard.
+Paste into your irb shell environment.
 
 ## PARAMETERS
 

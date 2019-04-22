@@ -31,6 +31,13 @@ Run shell script on hosts using SSM AWS-RunShellScript.
 
 ### EXAMPLE 1
 ```
+Invoke-ATSSMPowerShellScript -InstanceIds ('i-00000001', 'i-00000002') -CommandText "ls -la /"
+```
+
+Runs the command on the listed instances.
+
+### EXAMPLE 2
+```
 Invoke-ATSSMShellScript -InstanceIds i-00000000 -AsText { ls -la / }
 ```
 
