@@ -64,25 +64,20 @@ function Get-ATEBInstanceLogs
 
             'ByEnvId'
             {
-
+                Write-Host "Getting EB environment details..."
                 (Get-ATEBEnvironmentResourceList -EnvironmentId $EnvironmentId).Instances.InstanceId
             }
 
             'ByEnvName'
             {
-
+                Write-Host "Getting EB environment details..."
                 (Get-ATEBEnvironmentResourceList -EnvironmentName $EnvironmentName).Instances.InstanceId
             }
         }
     )
 
+    Write-Host "Checking instances for SSM..."
     $instanceTypes = Get-SSMEnabledInstances -InstanceId $instances
-
-    if (-not $instanceTypes.Windows)
-    {
-        Write-Warning "No instances found that are Windows, running, passed status checks, SSM enabled and ready."
-        return
-    }
 
     if ($instanceTypes.NotReady)
     {
@@ -94,56 +89,93 @@ function Get-ATEBInstanceLogs
         Write-Warning "Instance is not SSM capable or SSM is not ready`n:   $($instanceTypes.NonSSM -join ', ')"
     }
 
-    if ($instanceTypes.NonWindows)
-    {
-        Write-Warning "Non-Windows instances currently not supported`n:   $($instanceTypes.NonWindows -join ', ')"
-    }
     # Send SSM commands to get all the logs
-    $results = Invoke-ATSSMPowerShellScript -InstanceId $instanceTypes.Windows -UseS3 -ScriptBlock {
+    $results = $(
 
-        # EB and CFN logs
-        ("C:\Program Files\Amazon\ElasticBeanstalk\Logs", "C:\cfn\log") |
-            Where-Object {
-                Test-Path -Path $_ -PathType Container
-            } |
-            ForEach-Object {
-            Get-ChildItem $_ |
-                Foreach-Object {
-                Write-Host "---#LOG# $($_.Name)"
-                Get-Content -Raw $_.FullName
-            }
-        }
-
-        # IIS Logs
-        try
+        if ($instanceTypes.Windows)
         {
-            Import-Module WebAdministration
+            Invoke-ATSSMPowerShellScript -InstanceId $instanceTypes.Windows -UseS3 -ScriptBlock {
 
-            (Get-ChildItem IIS:\Sites) |
-                Foreach-Object {
-                $site = Get-Item $_.FullName
-                Get-ChildItem (Join-Path ([Environment]::ExpandEnvironmentVariables($site.logfile.directory), "W3SVC$($site.id)")) |
+                # EB and CFN logs
+                ("C:\Program Files\Amazon\ElasticBeanstalk\Logs", "C:\cfn\log") |
+                Where-Object {
+                    Test-Path -Path $_ -PathType Container
+                } |
+                ForEach-Object {
+                    Get-ChildItem $_ |
                     Foreach-Object {
-                    Write-Host "---#LOG# IIS_$($site.Name.Replace(' ', '_'))_$($_.Name)"
-                    Get-Content -Raw $_.FullName
+                        Write-Host "---#LOG# $($_.Name)"
+                        Get-Content -Raw $_.FullName
+                    }
+                }
+
+                # IIS Logs
+                try
+                {
+                    Import-Module WebAdministration
+
+                    (Get-ChildItem IIS:\Sites) |
+                    Foreach-Object {
+                        $site = Get-Item $_.FullName
+                        Get-ChildItem (Join-Path ([Environment]::ExpandEnvironmentVariables($site.logfile.directory), "W3SVC$($site.id)")) |
+                        Foreach-Object {
+                            Write-Host "---#LOG# IIS_$($site.Name.Replace(' ', '_'))_$($_.Name)"
+                            Get-Content -Raw $_.FullName
+                        }
+                    }
+                }
+                catch
+                {
+                    Write-Host "---#LOG# IISLogRetrievalFailed.log"
+                    Write-Host $_.Exception.Message
+                }
+
+                # Event logs
+                ('Application', 'System') |
+                Foreach-Object {
+                    Write-Host = "---#LOG# EventLog.$($_).csv"
+                    Get-EventLog -LogName $_ -After ( [DateTime]::Now - [timespan]::FromMinutes(60) ) |
+                    Select-Object Index, TimeGenerated, EntryType, Source, InstanceId, Message |
+                    ConvertTo-Csv -NoTypeInformation
                 }
             }
         }
-        catch
+
+
+        if ($instanceTypes.NonWindows)
         {
-            Write-Host "---#LOG# IISLogRetrievalFailed.log"
-            Write-Host $_.Exception.Message
+            $shellScript = @"
+for f in `$(ls /var/log/eb*.log)
+do
+    echo "---#LOG# `$(basename `$f)"
+    cat `$f
+done
+
+for f in `$(ls /var/log/cfn-*.log)
+do
+    echo "---#LOG# `$(basename `$f)"
+    cat `$f
+done
+
+for f in `$(ls /var/log/cloud-*.log)
+do
+    echo "---#LOG# `$(basename `$f)"
+    cat `$f
+done
+
+if [ -d /var/log/nginx ]
+then
+    for f in /var/log/nginx/access.log /var/log/nginx/error.log
+    do
+        echo "---#LOG# `$(basename `$f)"
+        cat `$f
+    done
+fi
+"@
+            Invoke-ATSSMShellScript -InstanceId $instanceTypes.NonWindows -UseS3 -CommandText $shellScript
         }
 
-        # Event logs
-        ('Application', 'System') |
-            Foreach-Object {
-            Write-Host = "---#LOG# EventLog.$($_).csv"
-            Get-EventLog -LogName $_ -After ( [DateTime]::Now - [timespan]::FromMinutes(60) ) |
-                Select-Object Index, TimeGenerated, EntryType, Source, InstanceId, Message |
-                ConvertTo-Csv -NoTypeInformation
-        }
-    }
+    )
 
     if (-not $OutputFolder)
     {
@@ -155,7 +187,7 @@ function Get-ATEBInstanceLogs
 
     # Write out logs
     $results |
-        Foreach-Object {
+    Foreach-Object {
 
         $thisInstance = $_.InstanceId
         $instanceFolder = Join-Path $OutputFolder $thisInstance
@@ -172,7 +204,7 @@ function Get-ATEBInstanceLogs
         $currentFile = $null
 
         $_.Stdout -split $lf |
-            ForEach-Object {
+        ForEach-Object {
 
             if ($_ -match '^---\#LOG\#\s+(?<filename>.*)')
             {

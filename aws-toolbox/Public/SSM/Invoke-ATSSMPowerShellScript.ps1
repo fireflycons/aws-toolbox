@@ -61,12 +61,14 @@ function Invoke-ATSSMPowerShellScript
         [string[]]$InstanceIds,
 
         [Parameter(Mandatory=$true, Position = 0)]
-        [scriptblock]$ScriptBlock,
 
-        [Parameter(ParameterSetName = 'json')]
+        [Alias("ScriptBlock")]
+        [scriptblock]$CommandText,
+
+        [Parameter(ParameterSetName = 'AsJson')]
         [switch]$AsJson,
 
-        [Parameter(ParameterSetName = 'text')]
+        [Parameter(ParameterSetName = 'AsText')]
         [switch]$AsText,
 
         [switch]$UseS3,
