@@ -30,9 +30,9 @@ Properties {
     }
 
     $DefaultLocale = 'en-US'
-    $DocsRootDir = "$PSScriptRoot\docs"
+    $DocsRootDir = Join-Path $PSScriptRoot docs
     $ModuleName = "aws-toolbox"
-    $ModuleOutDir = "$PSScriptRoot\aws-toolbox"
+    $ModuleOutDir = Join-Path $PSScriptRoot aws-toolbox
 
 }
 
@@ -90,10 +90,10 @@ Task Test -Depends Init {
 
     # Gather test results. Store them in a variable and file
     $pesterParameters = @{
-        Path         = "$ProjectRoot\Tests"
+        Path         = Join-Path $ProjectRoot tests
         PassThru     = $true
         OutputFormat = "NUnitXml"
-        OutputFile   = "$ProjectRoot\$TestFile"
+        OutputFile   = Join-Path $ProjectRoot $TestFile
     }
 
     if (-Not $IsWindows) { $pesterParameters["ExcludeTag"] = "WindowsOnly" }
@@ -104,10 +104,10 @@ Task Test -Depends Init {
     {
         (New-Object 'System.Net.WebClient').UploadFile(
             "https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)",
-            "$ProjectRoot\$TestFile" )
+            (Join-Path $ProjectRoot $TestFile) )
     }
 
-    Remove-Item "$ProjectRoot\$TestFile" -Force -ErrorAction SilentlyContinue
+    Remove-Item (Join-Path $ProjectRoot $TestFile) -Force -ErrorAction SilentlyContinue
 
     # Failed tests?
     # Need to tell psake or it will proceed to the deployment. Danger!
@@ -140,66 +140,51 @@ Task Build -Depends Test {
     }
 }
 
-function Test-IsTagPush
-{
-    # would be nice to detect tag by using GIT commands, but can't work out how.
-    if ($ENV:BHBuildSystem -ieq 'AppVeyor' -and $ENV:APPVEYOR_REPO_TAG -ieq 'true')
-    {
-        return $true
-    }
-
-    return $false
-}
-
 Task Deploy -Depends Init {
     $lines
 
-    try
-    {
-        # Is this commit a tag
-        $isTagged = Test-IsTagPush
+    $deployParams = $(
 
-        # Gate Production deployment
-        if (
-            $ENV:BHBuildSystem -ne 'Unknown' -and
-            $ENV:BHBranchName -eq "master" -and
-            $isTagged
-        )
+        if ($ENV:BHBuildSystem -ieq 'AppVeyor')
         {
-            if ($ENV:APPVEYOR_REPO_TAG_NAME)
-            {
-                "PSGallery deployment for tag: ${ENV:APPVEYOR_REPO_TAG_NAME}"
-            }
+            # We will deploy _something_
+            Write-Host '- Deploying to'
+            Write-Host '  - AppVeyor Artifact'
 
-            $Params = @{
+            $params = @{
                 Path  = $ProjectRoot
                 Force = $true
-                Tags = @('Development', 'Production')
+                Tags = @('Development') # Push AppVeyor artifact
             }
 
-            Invoke-PSDeploy @Verbose @Params
+            if ($ENV:BHBranchName -eq "master" -and $ENV:APPVEYOR_REPO_TAG -ieq 'true')
+            {
+                # Tag push in master is a release, so we want to also push to PSGallery
+                $params['Tags'] += 'Production'
+                Write-Host '  - PowerShell Gallery'
+            }
+
+            # Emit parameters
+            $params
         }
         else
         {
-            "Skipping PSGallery deployment: To deploy, ensure that...`n" +
-            "`t* You are in a known build system (Current: $ENV:BHBuildSystem)`n" +
-            "`t* You are committing a tag to the master branch (Branch: $ENV:BHBranchName, Is Tag: $isTagged) `n"
-            " "
-
-            # Only deploy AppVeyor artifact
-            $Params = @{
-                Path  = $ProjectRoot
-                Force = $true
-                Tags = 'Development'
-            }
-
-            Invoke-PSDeploy @Verbose @Params
+            $null
         }
-    }
-    catch
+    )
+
+    # Gate deployment
+    if ($null -ne $deployParams)
     {
-        $_.ScriptStackTrace
-        throw
+        Invoke-PSDeploy @Verbose @deployParams
+    }
+    else
+    {
+        "Skipping deployment: To deploy, ensure that...`n" +
+        "`t* You are in AppVeyor (Current: $ENV:BHBuildSystem)`n" +
+        "`t* For Gallery deployment`n" +
+        "`t  * You are committing to the master branch (Current: $ENV:BHBranchName) `n" +
+        "`t  * You have pushed a tag (i.e. created a release in GitHub)"
     }
 }
 

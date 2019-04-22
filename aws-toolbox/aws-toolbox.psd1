@@ -11,7 +11,7 @@
     RootModule        = 'aws-toolbox.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '0.1.8'
+    ModuleVersion     = '0.9.0'
 
     # ID used to uniquely identify this module
     GUID              = 'e3c04d58-4e7d-4572-9e81-3b3a93f1a518'
@@ -71,7 +71,7 @@
             ExternalModuleDependencies = @('AWSPowerShell')
 
             # A URL to the license for this module.
-            LicenseUri                 = 'https://github.com/fireflycons/aws-toolbox/LICENSE'
+            LicenseUri                 = 'https://github.com/fireflycons/aws-toolbox/blob/master/LICENCE'
 
             # A URL to the main website for this project.
             ProjectUri                 = 'https://github.com/fireflycons/aws-toolbox'
@@ -80,7 +80,7 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = 'New functions added.'
+            ReleaseNotes = 'https://github.com/fireflycons/aws-toolbox/blob/master/RELEASENOTES.md'
 
         } # End of PSData hashtable
 

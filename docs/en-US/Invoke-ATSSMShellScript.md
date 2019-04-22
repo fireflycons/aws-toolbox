@@ -14,19 +14,13 @@ Run shell script on hosts using SSM AWS-RunShellScript.
 
 ### AsText (Default)
 ```
-Invoke-ATSSMShellScript -InstanceIds <String[]> [-ScriptBlock] <ScriptBlock> [-UseS3]
+Invoke-ATSSMShellScript -InstanceIds <String[]> [-CommandText] <String> [-AsText] [-UseS3]
  [-ExecutionTimeout <Int32>] [-DeliveryTimeout <Int32>] [<CommonParameters>]
 ```
 
-### json
+### AsJson
 ```
-Invoke-ATSSMShellScript -InstanceIds <String[]> [-ScriptBlock] <ScriptBlock> [-AsJson] [-UseS3]
- [-ExecutionTimeout <Int32>] [-DeliveryTimeout <Int32>] [<CommonParameters>]
-```
-
-### text
-```
-Invoke-ATSSMShellScript -InstanceIds <String[]> [-ScriptBlock] <ScriptBlock> [-AsText] [-UseS3]
+Invoke-ATSSMShellScript -InstanceIds <String[]> [-CommandText] <String> [-AsJson] [-UseS3]
  [-ExecutionTimeout <Int32>] [-DeliveryTimeout <Int32>] [<CommonParameters>]
 ```
 
@@ -59,11 +53,11 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -ScriptBlock
-ScriptBlock containing the script to run.
+### -CommandText
+String containing shell commands to run.
 
 ```yaml
-Type: ScriptBlock
+Type: String
 Parameter Sets: (All)
 Aliases:
 
@@ -79,7 +73,7 @@ If set, attempt to parse command output as a JSON string and convert to an objec
 
 ```yaml
 Type: SwitchParameter
-Parameter Sets: json
+Parameter Sets: AsJson
 Aliases:
 
 Required: False
@@ -94,7 +88,7 @@ Print command output from each instance to the console
 
 ```yaml
 Type: SwitchParameter
-Parameter Sets: text
+Parameter Sets: AsText
 Aliases:
 
 Required: False

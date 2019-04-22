@@ -1,9 +1,25 @@
-$ModuleName = 'aws-toolbox'
+$ModuleName = $(
+    if ($PSVersionTable.PSEdition -ieq 'Core')
+    {
+        'aws-toolbox.netcore'
+    }
+    else
+    {
+        'aws-toolbox'
+    }
+)
 
+# http://www.lazywinadmin.com/2016/05/using-pester-to-test-your-manifest-file.html
+# Make sure one or multiple versions of the module are not loaded
 Get-Module -Name $ModuleName | Remove-Module
 
 # Find the Manifest file
-$manifestFile = "$(Split-path (Split-Path -Parent -Path $MyInvocation.MyCommand.Definition))\$ModuleName\$ModuleName.psd1"
+$ManifestFile = Get-ChildItem -Path (Split-path (Split-Path -Parent -Path $MyInvocation.MyCommand.Definition)) -Recurse -Filter "$ModuleName.psd1" | Select-Object -ExpandProperty FullName
+
+if (($ManifestFile | Measure-Object).Count -ne 1)
+{
+    throw "Cannot locate $ModuleName.psd1"
+}
 
 $global:scriptRoot = $PSScriptRoot
 Import-Module $manifestFile
@@ -47,7 +63,7 @@ InModuleScope -Module $ModuleName {
 
                 Mock -CommandName Read-S3Object -MockWith {
 
-                    Copy-Item "$($global:scriptRoot)\Assets\elb.log" $File
+                    Copy-Item ([IO.Path]::Combine($global:scriptRoot, "Assets", "elb.log")) $File
                 }
 
                 Mock -CommandName Get-ELBLoadBalancerAttribute -MockWith {
@@ -96,7 +112,7 @@ InModuleScope -Module $ModuleName {
 
                 Mock -CommandName Read-S3Object -MockWith {
 
-                    Copy-Item "$($global:scriptRoot)\Assets\alb.log.gz" $File
+                    Copy-Item ([IO.Path]::Combine($global:scriptRoot, "Assets", "alb.log.gz")) $File
                 }
 
                 Mock -CommandName Get-ELB2LoadBalancerAttribute -MockWith {

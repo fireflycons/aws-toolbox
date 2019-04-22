@@ -26,6 +26,9 @@ function Invoke-SSMCommandScript
     .PARAMETER ScriptBlock
         ScriptBlock containing the script to run.
 
+    .PARAMETER CommandText
+        String containing commands to run
+
     .PARAMETER ExecutionTimeout
          The time in seconds for a command to be completed before it is considered to have failed. Default is 3600 (1 hour). Maximum is 172800 (48 hours).
 
@@ -68,12 +71,12 @@ function Invoke-SSMCommandScript
         [string[]]$InstanceIds,
 
         [Parameter(Mandatory=$true, Position = 0)]
-        [scriptblock]$ScriptBlock,
+        [object]$CommandText,
 
-        [Parameter(ParameterSetName = 'json')]
+        [Parameter(ParameterSetName = 'AsJson')]
         [switch]$AsJson,
 
-        [Parameter(ParameterSetName = 'text')]
+        [Parameter(ParameterSetName = 'AsText')]
         [switch]$AsText,
 
         [switch]$UseS3,
@@ -88,6 +91,21 @@ function Invoke-SSMCommandScript
         $s3Bucket = Get-WorkspaceBucket
         $s3KeyPrefix = 'ssm-run-command/'
     }
+
+    $ssmCommands = $(
+        if ($CommandText -is [scriptblock])
+        {
+            $ScriptBlock.ToString() -split [Environment]::NewLine
+        }
+        elseif ($CommandText -is [string])
+        {
+            $CommandText -split [Environment]::NewLine
+        }
+        else
+        {
+            throw "SSM command must be string or scriptblock, not $($CommandText.GetType().Name)"
+        }
+    )
 
     $InstanceIds = $InstanceIds |
     Where-Object {
@@ -156,7 +174,7 @@ function Invoke-SSMCommandScript
 
                 workingDirectory = [string]::Empty
                 executionTimeout = $ExecutionTimeout.ToString()
-                commands         = $ScriptBlock.ToString() -split [Environment]::NewLine
+                commands         = $ssmCommands
             }
         }
 

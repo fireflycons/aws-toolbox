@@ -2,25 +2,26 @@ function Get-CurrentRegion
 {
 <#
     .SYNOPSIS
-        Determine region from command line arguments or AWS default.
-
-    .PARAMETER CredentialArguments
-        Credential arguments passed to public function.
+        Determine region from AWS default.
 
     .OUTPUTS
         [string] Region name.
 #>
-    param
-    (
-        [hashtable]$CredentialArguments
-    )
-
-    if ($CredentialArguments -and $CredentialArguments.ContainsKey('Region'))
+    if (Test-Path -Path variable:StoredAWSRegion)
     {
-        $CredentialArguments['Region']
+        $StoredAWSRegion
     }
     else
     {
-        [Amazon.Runtime.FallbackRegionFactory]::GetRegionEndpoint().SystemName
+        $fallbackRegion = [Amazon.Runtime.FallbackRegionFactory]::GetRegionEndpoint()
+
+        if ($null -ne $fallbackRegion)
+        {
+            $fallbackRegion.SystemName
+        }
+        else
+        {
+            throw "Cannot determine AWS Region. Use Set-DefaultAWSRegion to set in shell."
+        }
     }
 }

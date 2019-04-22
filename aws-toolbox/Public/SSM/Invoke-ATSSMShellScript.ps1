@@ -20,8 +20,8 @@ function Invoke-ATSSMShellScript
             SSM truncates results to 2000 characters. If you expect results to exceed this, then this switch
             instructs SSM to send the results to S3. The cmdlet will retrieve these results and return them.
 
-        .PARAMETER ScriptBlock
-            ScriptBlock containing the script to run.
+        .PARAMETER CommandText
+            String containing shell commands to run.
 
         .PARAMETER ExecutionTimeout
             The time in seconds for a command to be completed before it is considered to have failed. Default is 3600 (1 hour). Maximum is 172800 (48 hours).
@@ -53,12 +53,12 @@ function Invoke-ATSSMShellScript
         [string[]]$InstanceIds,
 
         [Parameter(Mandatory=$true, Position = 0)]
-        [scriptblock]$ScriptBlock,
+        [string]$CommandText,
 
-        [Parameter(ParameterSetName = 'json')]
+        [Parameter(ParameterSetName = 'AsJson')]
         [switch]$AsJson,
 
-        [Parameter(ParameterSetName = 'text')]
+        [Parameter(ParameterSetName = 'AsText')]
         [switch]$AsText,
 
         [switch]$UseS3,

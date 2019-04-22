@@ -286,7 +286,7 @@ function Read-ATEC2LoadBalancerLogs
         {
             $s3Object = $_
             $filename = Split-Path -Leaf $_.Key
-            $localFile = Join-Path $env:TEMP $filename
+            $localFile = Join-Path ([IO.Path]::GetTempPath()) $filename
 
             Write-Progress -Activity 'Getting Logs' -CurrentOperation "Processing $filename" -Status 'Downloading' -PercentComplete ($bytesDownloaded * 100 / $downloadSize )
             Read-S3Object -BucketName $_.BucketName -Key $_.Key -File $localFile | Out-Null
@@ -296,7 +296,7 @@ function Read-ATEC2LoadBalancerLogs
             {
                 Write-Progress -Activity 'Getting Logs' -CurrentOperation "Processing $filename" -Status 'Decompressing' -PercentComplete ($bytesDownloaded * 100 / $downloadSize )
                 # uncompress - delete compressed, set $localfile to uncompressed path
-                $uncompressed = Join-Path $env:TEMP ([System.IO.Path]::GetFileNameWithoutExtension($_.Key))
+                $uncompressed = Join-Path ([IO.Path]::GetTempPath()) ([System.IO.Path]::GetFileNameWithoutExtension($_.Key))
 
                 try
                 {
