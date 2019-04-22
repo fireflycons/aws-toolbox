@@ -20,7 +20,7 @@ function Invoke-ATSSMPowerShellScript
         SSM truncates results to 2000 characters. If you expect results to exceed this, then this switch
         instructs SSM to send the results to S3. The cmdlet will retrieve these results and return them.
 
-    .PARAMETER ScriptBlock
+    .PARAMETER CommandText
         ScriptBlock containing the script to run.
 
     .PARAMETER ExecutionTimeout

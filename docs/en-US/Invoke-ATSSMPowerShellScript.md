@@ -14,19 +14,13 @@ Run PowerShell on hosts using SSM AWS-RunPowerShellScript.
 
 ### AsText (Default)
 ```
-Invoke-ATSSMPowerShellScript -InstanceIds <String[]> [-ScriptBlock] <ScriptBlock> [-UseS3]
+Invoke-ATSSMPowerShellScript -InstanceIds <String[]> [-CommandText] <ScriptBlock> [-AsText] [-UseS3]
  [-ExecutionTimeout <Int32>] [-DeliveryTimeout <Int32>] [<CommonParameters>]
 ```
 
-### json
+### AsJson
 ```
-Invoke-ATSSMPowerShellScript -InstanceIds <String[]> [-ScriptBlock] <ScriptBlock> [-AsJson] [-UseS3]
- [-ExecutionTimeout <Int32>] [-DeliveryTimeout <Int32>] [<CommonParameters>]
-```
-
-### text
-```
-Invoke-ATSSMPowerShellScript -InstanceIds <String[]> [-ScriptBlock] <ScriptBlock> [-AsText] [-UseS3]
+Invoke-ATSSMPowerShellScript -InstanceIds <String[]> [-CommandText] <ScriptBlock> [-AsJson] [-UseS3]
  [-ExecutionTimeout <Int32>] [-DeliveryTimeout <Int32>] [<CommonParameters>]
 ```
 
@@ -73,13 +67,13 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -ScriptBlock
+### -CommandText
 ScriptBlock containing the script to run.
 
 ```yaml
 Type: ScriptBlock
 Parameter Sets: (All)
-Aliases:
+Aliases: ScriptBlock
 
 Required: True
 Position: 1
@@ -93,7 +87,7 @@ If set, attempt to parse command output as a JSON string and convert to an objec
 
 ```yaml
 Type: SwitchParameter
-Parameter Sets: json
+Parameter Sets: AsJson
 Aliases:
 
 Required: False
@@ -108,7 +102,7 @@ Print command output from each instance to the console
 
 ```yaml
 Type: SwitchParameter
-Parameter Sets: text
+Parameter Sets: AsText
 Aliases:
 
 Required: False
