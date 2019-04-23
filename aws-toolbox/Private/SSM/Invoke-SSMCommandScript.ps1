@@ -118,7 +118,7 @@ function Invoke-SSMCommandScript
         return
     }
 
-    $instanceTypes = $InstanceIds | Get-SSMEnabledInstances
+    $instanceTypes = Get-SSMEnabledInstances -InstanceId $InstanceIds
     $documentName = $null
 
     switch ($ScriptType)

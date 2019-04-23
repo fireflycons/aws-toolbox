@@ -17,7 +17,7 @@ function Get-SSMEnabledInstances
 #>
     param
     (
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        [Parameter(Mandatory = $true)]
         [string[]]$InstanceId
     )
 
