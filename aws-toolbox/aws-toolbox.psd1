@@ -11,7 +11,7 @@
     RootModule        = 'aws-toolbox.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '0.9.0'
+    ModuleVersion     = '0.10.0'
 
     # ID used to uniquely identify this module
     GUID              = 'e3c04d58-4e7d-4572-9e81-3b3a93f1a518'

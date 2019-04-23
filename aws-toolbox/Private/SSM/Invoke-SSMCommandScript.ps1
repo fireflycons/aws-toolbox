@@ -95,7 +95,7 @@ function Invoke-SSMCommandScript
     $ssmCommands = $(
         if ($CommandText -is [scriptblock])
         {
-            $ScriptBlock.ToString() -split [Environment]::NewLine
+            $CommandText.ToString() -split [Environment]::NewLine
         }
         elseif ($CommandText -is [string])
         {
@@ -118,7 +118,7 @@ function Invoke-SSMCommandScript
         return
     }
 
-    $instanceTypes = $InstanceIds | Get-SSMEnabledInstances
+    $instanceTypes = Get-SSMEnabledInstances -InstanceId $InstanceIds
     $documentName = $null
 
     switch ($ScriptType)
