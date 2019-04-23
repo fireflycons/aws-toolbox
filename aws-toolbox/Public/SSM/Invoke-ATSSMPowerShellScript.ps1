@@ -57,6 +57,7 @@ function Invoke-ATSSMPowerShellScript
     [CmdletBinding(DefaultParameterSetName = 'AsText')]
     param
     (
+        [Alias("InstanceId")]
         [Parameter(Mandatory=$true)]
         [string[]]$InstanceIds,
 
