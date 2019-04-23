@@ -51,7 +51,7 @@ List of instance IDs identifying instances to run the script on.
 ```yaml
 Type: String[]
 Parameter Sets: (All)
-Aliases:
+Aliases: InstanceId
 
 Required: True
 Position: Named

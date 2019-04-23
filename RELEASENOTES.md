@@ -1,5 +1,12 @@
 # Release Notes
 
+## v0.10
+
+Fixes
+
+* `Get-ATEBEnvironmentResourceList` should filter out terminated environments
+* Invoke-SSM* script commands only processing one instance
+
 ## v0.9
 
 * Support PowerShell Core/Linux

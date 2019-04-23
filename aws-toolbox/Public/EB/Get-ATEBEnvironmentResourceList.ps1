@@ -118,6 +118,9 @@ function Get-ATEBEnvironmentResourceList
     }
 
     $allEnvs = $env |
+        Where-Object {
+            ('Updating', 'Ready') -icontains $_.Status
+        } |
         ForEach-Object {
 
         # Name of stack created by Elastic Beanstalk
