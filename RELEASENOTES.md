@@ -1,5 +1,9 @@
 # Release Notes
 
+## v0.11.0
+
+* Tag S3 worksapce bucket on creation, or if untagged.
+
 ## v0.10
 
 Fixes
