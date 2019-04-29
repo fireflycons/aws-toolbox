@@ -15,6 +15,8 @@ function Get-WorkspaceBucket
     {
         $location = Get-BucketLocation -BucketName $bucketName
 
+        Write-WorkspaceBucketTagging -BucketName $bucketName
+
         return New-Object psobject -Property @{
             BucketName = $bucketName
             BucketUrl  = [uri]"https://s3.$($location).amazonaws.com/$bucketName"
@@ -30,6 +32,8 @@ function Get-WorkspaceBucket
 
     if ($response)
     {
+        Write-WorkspaceBucketTagging -BucketName $bucketName
+
         $location = Get-BucketLocation -BucketName $bucketName
 
         return New-Object psobject -Property @{
