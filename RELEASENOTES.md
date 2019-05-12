@@ -1,17 +1,21 @@
 # Release Notes
 
+## v1.12.0
+
+* New command `Compress-ATLMLambdaPackage` packages up a zip file of lambda code for updating lambda functions.
+
 ## v0.11.0
 
 * Tag S3 worksapce bucket on creation, or if untagged.
 
-## v0.10
+## v0.10.0
 
 Fixes
 
 * `Get-ATEBEnvironmentResourceList` should filter out terminated environments
 * Invoke-SSM* script commands only processing one instance
 
-## v0.9
+## v0.9.0
 
 * Support PowerShell Core/Linux
 
@@ -23,7 +27,7 @@ Enhanced
 
 * `Get-ATEBInstanceLogs` Now supports Linux environments
 
-## v0.8
+## v0.8.0
 
 Added
 

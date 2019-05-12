@@ -1,7 +1,10 @@
 $ErrorActionPreference = 'Stop'
 
-# .NET compression library
-[System.Reflection.Assembly]::LoadWithPartialName('System.IO.Compression') | Out-Null
+# .NET compression libraries
+'System.IO.Compression', 'System.IO.Compression.FileSystem' |
+Foreach-Object {
+    [System.Reflection.Assembly]::LoadWithPartialName($_) | Out-Null
+}
 
 # Get public and private function definition files.
 $Public = @( Get-ChildItem -Path ([IO.Path]::Combine($PSScriptRoot, "Public", "*.ps1")) -Recurse -ErrorAction SilentlyContinue )

@@ -8,7 +8,7 @@ Locale: en-US
 
 # aws-toolbox Module
 ## Description
-{{Manually Enter Description Here}}
+A module containing a collection of PowerShell scripts I've created to ease various AWS tasks.
 
 ## CloudFormation Cmdlets
 ### [Compare-ATDeployedStackWithSourceTemplate](Compare-ATDeployedStackWithSourceTemplate.md)
@@ -17,9 +17,16 @@ Compare a template file with what is currently deployed in CloudFormation and re
 ### [Set-ATCFNStackProtectionPolicy](Set-ATCFNStackProtectionPolicy.md)
 Set or remove stack policy to prevent replacement or deletion of resources.
 
+## CloudWatch Cmdlets
+### [Read-ATCWLFlowLog](Read-ATCWLFlowLog.md)
+Read a flow log into a list of PowerShell custom objects.
+
 ## Elastic Beanstalk Cmdlets
 ### [Get-ATEBEnvironmentResourceList](Get-ATEBEnvironmentResourceList.md)
 Gets a list of resources associated with Elastic Beanstalk environents.
+
+### [Get-ATEBInstanceLogs](Get-ATEBInstanceLogs.md)
+Retrieve CloudFormation Init and Elastic Beanstalk instance logs from one or more instances.
 
 ## EC2 Cmdlets
 ### [Get-ATEC2LatestAMI](Get-ATEC2LatestAMI.md)
@@ -31,12 +38,20 @@ Read Load Balancer logs into a list of PowerShell custom objects.
 ### [Test-ATEC2IsRunningInEC2](Test-ATEC2IsRunningInEC2.md)
 Tests for executing on EC2 by trying to read EC2 instance metadata URL.
 
+## IAM Cmdlets
+### [Get-ATIAMSessionCredentials](Get-ATIAMSessionCredentials.md)
+Gets keys from a federated AWS login
+
+## Lambda Cmdlets
+### [Compress-ATLMLambdaPackage](Compress-ATLMLambdaPackage.md)
+Packages lambda function code to a zip file
+
 ## SSM Cmdlets
 ### [Invoke-ATSSMPowerShellScript](Invoke-ATSSMPowerShellScript.md)
 Run PowerShell on hosts using SSM AWS-RunPowerShellScript.
 
-## CloudWatch Cmdlets
-### [Read-ATCWLFlowLog](Read-ATCWLFlowLog.md)
-Read a flow log into a list of PowerShell custom objects.
+### [Invoke-ATSSMShellScript](Invoke-ATSSMPhellScript.md)
+Run bash scripts on hosts using SSM AWS-RunShellScript.
 
-
+### [Set-ATSSMWindowsAdminUser](Set-ATSSMWindowsAdminUser.md)
+Use SSM to set up an admin user on one or more Windows instances
