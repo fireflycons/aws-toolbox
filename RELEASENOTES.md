@@ -1,6 +1,10 @@
 # Release Notes
 
-## v1.12.0
+## v0.12.1
+
+* Fix bug in `Compress-ATLMLambdaPackage`
+
+## v0.12.0
 
 * New command `Compress-ATLMLambdaPackage` packages up a zip file of lambda code for updating lambda functions.
 

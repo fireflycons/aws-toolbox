@@ -74,7 +74,9 @@ function Compress-ATLMLambdaPackage
 
     # Account for powershell and OS current directory not being the same
     # as .NET objects like ZipFile will use OS path
-    if (-not [IO.Path]::IsPathRooted($ZipFile))
+    $osZipPath = $ZipFile
+
+    if (-not ([IO.Path]::IsPathRooted($ZipFile)))
     {
         $osZipPath = Join-Path (Get-Location).Path $ZipFile
     }
