@@ -264,17 +264,20 @@ function Invoke-SSMCommandScript
 
             if ($AsText)
             {
-                Write-Host "----------- Instance $instanceId ----------- "
+                "----------- Instance $instanceId ----------- "
 
                 if (-not ([string]::IsNullOrEmpty($detail.StandardOutputContent)))
                 {
-                    Write-Host
-                    Write-Host $detail.StandardOutputContent
-                    Write-Host
+                    ""
+                    $detail.StandardOutputContent
+                    ""
                 }
 
                 if (-not ([string]::IsNullOrEmpty($detail.StandardErrorContent)))
                 {
+                    # Error output always to console
+                    Write-Host
+                    Write-Host "-------- Instance $instanceId Errors -------- "
                     Write-Host
                     Write-Host -ForegroundColor Red $detail.StandardErrorContent
                     Write-Host
