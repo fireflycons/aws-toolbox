@@ -98,13 +98,6 @@ function Compare-ATDeployedStackWithSourceTemplate
             Write-Warning 'Upgrade your version of AWSPowerShell to see drift information'
         }
 
-        $diffTool = New-DiffTool
-
-        if (-not $diffTool)
-        {
-            throw "Cannot find a suitable tool to show differences"
-        }
-
         # Write AWS view of template to temp file
         $tmpDir = Join-Path ([IO.Path]::GetTempPath()) 'TempCloudFormation'
 
@@ -123,17 +116,15 @@ function Compare-ATDeployedStackWithSourceTemplate
         {
             'FromFile'
             {
-
                 # Try to write the temp file with the same encoding as the template on file system, so as not to confuse git diff
                 $encoding = Get-FileEncoding -Path $TemplateFilePath
                 [IO.File]::WriteAllText($awsStackTemplateFile, (Get-CFNTemplate -StackName $stack.StackId), $encoding)
 
-                $diffTool.Invoke($TemplateFilePath, $awsStackTemplateFile, $TemplateFilePath, $stack.StackId, [bool]$WaitForDiff)
+                Invoke-ATDiffTool -LeftPath $TemplateFilePath -RightPath $awsStackTemplateFile -RightTitle $stack.StackId -Wait:$WaitForDiff
             }
 
             'FromS3'
             {
-
                 # Break up the URL. Need to get from S3 via API, as URL is probably protected.
                 $uri = [Uri]$TemplateUri
                 $bucketName = ($uri.Segments | Select-Object -Skip 1 -First 1).Trim('/')
@@ -144,7 +135,7 @@ function Compare-ATDeployedStackWithSourceTemplate
                 $encoding = Get-FileEncoding -Path $uriTemplateFile
                 [IO.File]::WriteAllText($awsStackTemplateFile, (Get-CFNTemplate -StackName $stack.StackId), $encoding)
 
-                $diffTool.Invoke($uriTemplateFile, $awsStackTemplateFile, $TemplateUri, $stack.StackId, [bool]$WaitForDiff)
+                Invoke-ATDiffTool -LeftPath $uriTemplateFile -RightPath $awsStackTemplateFile -LeftTitle $TemplateUri -RightTitle $stack.StackId -Wait:$WaitForDiff
             }
         }
     }

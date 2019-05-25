@@ -55,3 +55,10 @@ Run bash scripts on hosts using SSM AWS-RunShellScript.
 
 ### [Set-ATSSMWindowsAdminUser](Set-ATSSMWindowsAdminUser.md)
 Use SSM to set up an admin user on one or more Windows instances
+
+## Utility Cmdlets
+### [Set-ATConfigurationItem](Set-ATConfigurationItem.md)
+Set configurable items for this module
+
+### [Invoke-ATDiffTool](Invoke-ATDiffTool)
+Runs the configured diff tool on a pair of files

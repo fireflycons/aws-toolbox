@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.13.0
+
+* Fix 'Cannot pipe output of Invoke-ATSSMPowerShellScript -AsText to e.g. Out-File'
+* Add a configuration system - currently to configure which app is used for diffs
+    * Supports WinMerge, VSCode and Git as diff tools
+
 ## v0.12.1
 
 * Fix bug in `Compress-ATLMLambdaPackage`

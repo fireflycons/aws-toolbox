@@ -29,5 +29,8 @@ if (-not ((Test-ATEC2IsRunningInEC2) -or $null -ne (Get-Item variable:StoredAWSC
     Write-Warning "No credential found. Please use Set-AWSCredential or Initialize-AWSDefaultConfiguration to set a credential before using commands in this module"
 }
 
+$script:PluginConfig = Import-PluginConfiguration
+$script:moduleConfig = Import-AwsToolboxConfiguration
+
 # Export public functions
 Export-ModuleMember -Function $Public.Basename

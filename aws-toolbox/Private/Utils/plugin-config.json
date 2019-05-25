@@ -1,0 +1,53 @@
+{
+    "DiffTools": [
+        {
+            "Name": "Winmerge",
+            "DisplayName": "WinMerge",
+            "ExecutableName": "winmergeu",
+            "Arguments": "/e /s /u /wr /dl {LeftTitle} /dr {RightTitle} {LeftPath} {RightPath}",
+            "IsGUI": true,
+            "Windows": true,
+            "Linux": false,
+            "MacOS": false,
+            "SearchInPath": false,
+            "WindowsPaths": [
+                "${env:ProgramFiles}\\WinMerge",
+                "${env:ProgramFiles(x86)}\\WinMerge"
+            ],
+            "NonWindowsPaths": []
+        },
+        {
+            "Name": "Git",
+            "DisplayName": "git",
+            "ExecutableName": "git",
+            "Arguments": "diff -w --no-index {LeftPath} {RightPath}",
+            "IsGUI": false,
+            "Windows": true,
+            "Linux": true,
+            "MacOS": true,
+            "SearchInPath": true,
+            "WindowsPaths": [],
+            "NonWindowsPaths": []
+        },
+        {
+            "Name": "VSCode",
+            "DisplayName": "Visual Studio Code",
+            "ExecutableName": "code",
+            "Arguments": "--new-window --diff {LeftPath} {RightPath}",
+            "IsGUI": true,
+            "Windows": true,
+            "Linux": true,
+            "MacOS": true,
+            "SearchInPath": true,
+            "WindowsPaths": [
+                "${env:LOCALAPPDATA}\\Programs\\Microsoft VS Code",
+                "${env:ProgramFiles}\\Microsoft VS Code"
+            ],
+            "NonWindowsPaths": [
+                "/bin/code",
+                "/usr/bin/code",
+                "/snap/bin/code"
+            ]
+        }
+    ]
+}
