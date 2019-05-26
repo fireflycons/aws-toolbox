@@ -1,7 +1,7 @@
 ---
 external help file: aws-toolbox-help.xml
 Module Name: aws-toolbox
-online version: https://github.com/fireflycons/aws-toolbox/tree/master/docs/en-US/Get-ATEC2LatestAMI.md
+online version:
 schema: 2.0.0
 ---
 
