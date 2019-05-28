@@ -44,9 +44,9 @@
                 "${env:ProgramFiles}\\Microsoft VS Code"
             ],
             "NonWindowsPaths": [
-                "/bin/code",
-                "/usr/bin/code",
-                "/snap/bin/code"
+                "/bin",
+                "/usr/bin",
+                "/snap/bin"
             ]
         }
     ]
