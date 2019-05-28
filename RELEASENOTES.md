@@ -1,5 +1,10 @@
 # Release Notes
 
+## 0.14.0
+
+* New command `Compare-ATCFNStackResourceDrift`. Formats all resource drifts into two files that can be visually compared in the configured diff tool.
+* Fix bug in plugin-config.json
+
 ## 0.13.0
 
 * Fix 'Cannot pipe output of Invoke-ATSSMPowerShellScript -AsText to e.g. Out-File'
