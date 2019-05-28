@@ -84,10 +84,10 @@ function Invoke-ATDiffTool
     {
         switch ($argumentArray[$i])
         {
-            '{LeftTitle}'  { $argumentArray[$i] = $LeftTitle }
-            '{RightTitle}'  { $argumentArray[$i] = $RightTitle }
-            '{LeftPath}'  { $argumentArray[$i] = $LeftPath }
-            '{RightPath}'  { $argumentArray[$i] = $RightPath }
+            '{LeftTitle}'  { $argumentArray[$i] = "`"$LeftTitle`"" }
+            '{RightTitle}'  { $argumentArray[$i] = "`"$RightTitle`"" }
+            '{LeftPath}'  { $argumentArray[$i] = "`"$LeftPath`"" }
+            '{RightPath}'  { $argumentArray[$i] = "`"$RightPath`"" }
         }
     }
 

@@ -65,21 +65,9 @@ function Compare-ATDeployedStackWithSourceTemplate
         if ($null -ne (Get-Command -Name Start-CFNStackDriftDetection -ErrorAction SilentlyContinue))
         {
             # Initiate drift detection
-            Write-Host "Initiating drift detection"
-            $detectionId = Start-CFNStackDriftDetection -StackName $stack.StackId
+            $driftStatus = Get-StackDrift -Stack $stack
 
-            # Wait for it to complete
-            $status = New-Object Amazon.CloudFormation.Model.DescribeStackDriftDetectionStatusResponse
-            $status.DetectionStatus = 'DETECTION_IN_PROGRESS'
-
-            while ($status.DetectionStatus -eq 'DETECTION_IN_PROGRESS')
-            {
-                Start-Sleep -Seconds 1
-                $status = Get-CFNStackDriftDetectionStatus -StackDriftDetectionId $detectionId
-            }
-
-
-            if ($status.StackDriftStatus -eq 'DRIFTED')
+            if ($driftStatus -eq 'DRIFTED')
             {
                 Write-Warning "Stack has drifted..."
                 Write-Host (
@@ -87,10 +75,16 @@ function Compare-ATDeployedStackWithSourceTemplate
                         Select-Object StackResourceDriftStatus, LogicalResourceId |
                         Out-String
                 )
+
+                Write-Host
+                Write-Host "To view detail on these drifts, run the following command:"
+                Write-Host
+                Write-Host "  Compare-ATCFNStackResourceDrift -StackName $StackName -NoReCheck"
+                Write-Host
             }
             else
             {
-                Write-Host "Stack drift: $($status.StackDriftStatus)"
+                Write-Host "Stack drift: $($driftStatus)"
             }
         }
         else

@@ -14,6 +14,9 @@ A module containing a collection of PowerShell scripts I've created to ease vari
 ### [Compare-ATDeployedStackWithSourceTemplate](Compare-ATDeployedStackWithSourceTemplate.md)
 Compare a template file with what is currently deployed in CloudFormation and report on stack drift.
 
+### [Compare-ATCFNStackResourceDrift](Compare-ATCFNStackResourceDrift.md)
+Get detailed information on stack drift.
+
 ### [Set-ATCFNStackProtectionPolicy](Set-ATCFNStackProtectionPolicy.md)
 Set or remove stack policy to prevent replacement or deletion of resources.
 
