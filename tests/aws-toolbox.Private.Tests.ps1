@@ -140,6 +140,54 @@ InModuleScope $ModuleName {
             }
         }
 
+        Context 'S3 Url Parsing - Path style' {
+
+            @(
+                'https://s3.amazonaws.com/jeffbarr-public/images/ritchie_and_thompson_pdp11.jpeg'
+                'https://s3-us-east-2.amazonaws.com/jeffbarr-public/images/ritchie_and_thompson_pdp11.jpeg'
+                'https://s3.us-east-2.amazonaws.com/jeffbarr-public/images/ritchie_and_thompson_pdp11.jpeg'
+                'https://s3.us-gov-east-1.amazonaws.com/jeffbarr-public/images/ritchie_and_thompson_pdp11.jpeg'
+                'https://s3-us-gov-east-1.amazonaws.com/jeffbarr-public/images/ritchie_and_thompson_pdp11.jpeg'
+            ) |
+            Foreach-Object {
+
+                $uri = [Uri]$_
+
+                It "Should parse $uri" {
+
+                    { $uri | Split-S3Url } | Should Not throw
+
+                    $loc = $uri | Split-S3Url
+                    $loc.BucketName | Should -Be 'jeffbarr-public'
+                    $loc.Key | Should -Be 'images/ritchie_and_thompson_pdp11.jpeg'
+                }
+            }
+        }
+
+        Context 'S3 Url Parsing - Virtual domain style' {
+
+            @(
+                'https://jeffbarr-public.s3.amazonaws.com/images/ritchie_and_thompson_pdp11.jpeg'
+                'https://jeffbarr-public.s3.amazonaws.com/images/ritchie_and_thompson_pdp11.jpeg'
+                'https://jeffbarr-public.s3.eu-west-1.amazonaws.com/images/ritchie_and_thompson_pdp11.jpeg'
+                'https://jeffbarr-public.s3-eu-west-1.amazonaws.com/images/ritchie_and_thompson_pdp11.jpeg'
+                'https://jeffbarr-public.s3-us-gov-east-1.amazonaws.com/images/ritchie_and_thompson_pdp11.jpeg'
+            ) |
+            Foreach-Object {
+
+                $uri = [Uri]$_
+
+                It "Should parse $uri" {
+
+                    { $uri | Split-S3Url } | Should Not throw
+
+                    $loc = $uri | Split-S3Url
+                    $loc.BucketName | Should -Be 'jeffbarr-public'
+                    $loc.Key | Should -Be 'images/ritchie_and_thompson_pdp11.jpeg'
+                }
+            }
+        }
+
         Context 'S3 Workspace Bucket' {
 
             Mock Get-STSCallerIdentity -MockWith {
