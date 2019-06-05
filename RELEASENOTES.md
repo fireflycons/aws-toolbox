@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.14.1
+
+* Fix a bug that arose today. Seems AWS have changed S3 URL format for urls with region in. Was s3-eu-west-1, now s3.eu-west-1. Either way, support both.
+
 ## 0.14.0
 
 * New command `Compare-ATCFNStackResourceDrift`. Formats all resource drifts into two files that can be visually compared in the configured diff tool.

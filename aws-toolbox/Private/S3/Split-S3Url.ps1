@@ -22,13 +22,30 @@ function Split-S3Url
         [Uri]$S3Url
     )
 
-    if (('https', 'http') -inotcontains $S3Url.Scheme -or -not $S3Url.Host.StartsWith('s3-'))
+    $url = $S3Url.ToString()
+
+    # Weird behaviour. PowerShell -match does not match these regexes
+    $virtualDomainRx = New-Object System.Text.RegularExpressions.Regex '^https://(?<bucket>.*?)\.s3([\.\-](?<region>[a-z]{2}-[a-z\-]+-\d))?\.amazonaws\.com/(?<key>.*)$'
+    $pathStyleRx = New-Object System.Text.RegularExpressions.Regex '^https://s3([\.\-](?<region>[a-z]{2}-[a-z\-]+-\d))?\.amazonaws\.com/(?<bucket>.*?)/(?<key>.*)$'
+
+    $m = $virtualDomainRx.Match($url)
+    if ($m.Success)
     {
-        throw "$($S3Url): Not an S3 URL"
+        return         New-Object PSObject -Property @{
+            BucketName = $m.Groups["bucket"].Value
+            Key        = $m.Groups["key"].Value
+        }
     }
 
-    New-Object PSObject -Property @{
-        BucketName = $S3Url.Segments[1].Trim('/')
-        Key        = ($S3Url.Segments | Select-Object -Skip 2 ) -join [string]::Empty
+    $m = $pathStyleRx.Match($url)
+
+    if ($m.Success)
+    {
+        return         New-Object PSObject -Property @{
+            BucketName = $m.Groups["bucket"].Value
+            Key        = $m.Groups["key"].Value
+        }
     }
+
+    throw "$($S3Url): Not an S3 URL"
 }
