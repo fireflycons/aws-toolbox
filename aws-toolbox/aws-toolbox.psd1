@@ -11,7 +11,7 @@
     RootModule        = 'aws-toolbox.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '0.14.1'
+    ModuleVersion     = '0.15.0'
 
     # ID used to uniquely identify this module
     GUID              = 'e3c04d58-4e7d-4572-9e81-3b3a93f1a518'
@@ -52,6 +52,7 @@
         'Compress-ATLMLambdaPackage'
         'Set-ATConfigurationItem'
         'Invoke-ATDiffTool'
+        'Get-ATEC2SecurityGroupDependencies'
         )
 
     # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
