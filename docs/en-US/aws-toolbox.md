@@ -41,6 +41,9 @@ Read Load Balancer logs into a list of PowerShell custom objects.
 ### [Test-ATEC2IsRunningInEC2](Test-ATEC2IsRunningInEC2.md)
 Tests for executing on EC2 by trying to read EC2 instance metadata URL.
 
+### [Get-ATEC2SecurityGroupDependencies](Get-ATEC2SecurityGroupDependencies.md)
+Find dependencies and attachments of given security group(s)
+
 ## IAM Cmdlets
 ### [Get-ATIAMSessionCredentials](Get-ATIAMSessionCredentials.md)
 Gets keys from a federated AWS login
