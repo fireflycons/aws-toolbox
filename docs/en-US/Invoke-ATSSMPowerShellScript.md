@@ -179,7 +179,12 @@ For more information, see about_CommonParameters (http://go.microsoft.com/fwlink
 ### - ResultObject If -AsJson and the result was successfully parsed, then an object else NULL
 ### - ResultText   Standard Output returned by the script (Write-Host etc.)
 ## NOTES
-aws-toolbox uses a working bucket for passing results through S3 which will be created if not found.
-Format of bucket name is aws-toolbox-workspace-REGIONNAME-AWSACCOUNTID
+IAM permissions required to run this command
+
+- ssm:GetConnectionStatus
+- ssm:ListCommandInvocations
+- ssm:ListCommands
+- ssm:SendCommand
+- ec2:DescribeInstances
 
 ## RELATED LINKS
