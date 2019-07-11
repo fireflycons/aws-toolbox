@@ -60,44 +60,6 @@ function Get-ATEBEnvironmentResourceList
         [switch]$AsText
     )
 
-    function Get-SecurityGroupWithStack
-    {
-        <#
-            .SYNOPSIS
-                Return security group ID with the name of the stack that created the group
-                Helps us to spot default SGs created by EB
-        #>
-        param
-        (
-            [string[]]$GroupId
-        )
-
-        $GroupId |
-            ForEach-Object {
-            $sg = Get-EC2SecurityGroup -GroupId $_
-
-            # Determine how it was created from tags
-            $stackName = $sg.Tags |
-                Where-Object {
-                $_.Key -ieq 'aws:cloudformation:stack-name'
-            } |
-                Select-Object -ExpandProperty Value
-
-            if (-not $stackName)
-            {
-                $stackName = '*NONE*'
-            }
-
-            New-Object PSObject -Property @{
-                SecurityGroupId = $_
-                OwningStack     = $stackName
-            } |
-                Add-Member -PassThru -MemberType ScriptMethod -Name ToString -Force -Value {
-                "$($this.SecurityGroupId) ($($this.OwningStack))"
-            }
-        }
-    }
-
     # Pass relevant arguments from function call to Get-EBEnvironment
     $envArgs = @{}
 

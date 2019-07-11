@@ -53,6 +53,15 @@ function Invoke-ATSSMPowerShellScript
     .EXAMPLE
         Invoke-ATSSMPowerShellScript -InstanceIds i-00000000 -AsText { dir c:\ }
         Returns directory listing from remote instance to the console.
+
+    .NOTES
+        IAM permissions required to run this command
+
+        - ssm:GetConnectionStatus
+        - ssm:ListCommandInvocations
+        - ssm:ListCommands
+        - ssm:SendCommand
+        - ec2:DescribeInstances
 #>
     [CmdletBinding(DefaultParameterSetName = 'AsText')]
     param

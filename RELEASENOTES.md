@@ -1,5 +1,10 @@
 # Release Notes
 
+## 0.15.0
+
+* New Command `Get-ATEC2SecurityGroupDependencies`. Given a security group ID or IDs, find all network interfaces and other security groups that refer to the input IDs.
+Useful before trying to delete a group, as it will not delete if it has any dependecies.
+
 ## 0.14.1
 
 * Fix a bug that arose today. Seems AWS have changed S3 URL format for urls with region in. Was s3-eu-west-1, now s3.eu-west-1. Either way, support both.

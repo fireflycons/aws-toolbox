@@ -47,8 +47,17 @@ function Invoke-ATSSMShellScript
             Format of bucket name is aws-toolbox-workspace-REGIONNAME-AWSACCOUNTID
 
         .EXAMPLE
-            Invoke-ATSSMShellScript -InstanceIds i-00000000 -AsText { ls -la / }
+            Invoke-ATSSMShellScript -InstanceIds i-00000000 -AsText "ls -la /"
             Returns directory listing from remote instance to the console.
+
+        .NOTES
+            IAM permissions required to run this command
+
+            - ssm:GetConnectionStatus
+            - ssm:ListCommandInvocations
+            - ssm:ListCommands
+            - ssm:SendCommand
+            - ec2:DescribeInstances
     #>
     [CmdletBinding(DefaultParameterSetName = 'AsText')]
     param
