@@ -34,10 +34,10 @@ function Set-ATSSMWindowsAdminUser
         [Parameter(Mandatory = $true)]
         [string[]]$InstanceId,
 
-        [Parameter(Mandatory = $true, ParameterSetName = 'ByUserName')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'ByUsername')]
         [string]$Username,
 
-        [Parameter(Mandatory = $true, ParameterSetName = 'ByUserName')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'ByUsername')]
         [string]$Password,
 
         [Parameter(Mandatory = $true, ParameterSetName = 'ByCredential', ValueFromPipeline = $true)]
@@ -54,15 +54,58 @@ function Set-ATSSMWindowsAdminUser
 
     Write-Host "Setting credentials on $($instanceTypes.Windows -join ', ')"
 
-    if ($PSCmdlet.ParameterSetName -eq 'cred')
+    if ($PSCmdlet.ParameterSetName -eq 'ByCredential')
     {
         $nc = $Credential.GetNetworkCredential()
-        $Username = $nc.UserName
+        $Username = $nc.Username
         $Password = $nc.Password
     }
 
-    $script = "net user $Username `"$Password`" /add ; net localgroup Administrators $Username /add"
+    # Scriptblock to manipulate local users via ADSI,
+    # as the PowerShell localgroup module is not available by default prior to Windows 2016.
+    $scriptblock = {
 
-    Invoke-ATSSMPowerShellScript -InstanceIds $InstanceId -ScriptBlock ([scriptblock]::Create($script)) -AsText
-    $script = $null
+        $username = '#USER#'
+        $pwd = '#PASSWORD#'
+        $computer = [ADSI]"WinNT://$($env:COMPUTERNAME),computer"
+
+        # Get existing users
+        $users = $computer.PSBase.Children |
+        Where-Object {
+            $_.PSBase.SchemaClassName -match 'user'
+        } |
+        ForEach-Object {
+            $_.Path.SubString($_.Path.LastIndexOf('/') + 1)
+        }
+
+        if ($users -icontains $username)
+        {
+            "User $username exists - changing password."
+            $user = [ADSI]"WinNT://$($env:COMPUTERNAME)/$($username),user"
+            $user.SetPassword($pwd)
+            $user.SetInfo()
+        }
+        else
+        {
+            # Add user
+            $user = $computer.Create('User', $username)
+            $user.SetPassword($pwd)
+            $user.put("Description", 'Added via SSM')
+            $user.SetInfo()
+
+            "Created user $username"
+
+            # Add to administrators
+            $group = [ADSI]"WinNT://$($env:COMPUTERNAME)/Administrators,group"
+            $group.Add("WinNT://$($username),user")
+
+            "Added $username to Administrators"
+        }
+    }
+
+    # Inject credentials into script block
+    $scriptblock = [ScriptBlock]::Create($scriptblock.ToString().Replace('#USER#', $Username).Replace('#PASSWORD#', $Password))
+
+    Invoke-ATSSMPowerShellScript -InstanceIds $InstanceId -ScriptBlock $scriptblock -AsText
+    $scriptblock = $null
 }
