@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.16.0
+
+* `Set-ATSSMWindowsAdminUser` Use ADSI to get better control over setting of credentials. If user exists update password, else create user and add to administrators.
+
 ## 0.15.0
 
 * New Command `Get-ATEC2SecurityGroupDependencies`. Given a security group ID or IDs, find all network interfaces and other security groups that refer to the input IDs.
