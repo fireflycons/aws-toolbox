@@ -23,6 +23,10 @@ function Get-ATIAMSessionCredentials
     .PARAMETER Bash
         The credentials are formatted as EXPORT staements and output to the console
 
+    .PARAMETER DotNetConstructor
+        The credentials are formatted as new SessionAWSCredentials(...) and output to the console.
+        Note that you would not want to store this in any code. Useful only for quick debugging.
+
     .PARAMETER Clipboard
         If set, output of -Ruby or -Bash is copied directly to clipboard, so you can paste them into code or your active Ruby or Shell prompt
 
@@ -48,8 +52,12 @@ function Get-ATIAMSessionCredentials
         [Parameter(ParameterSetName = "Shell")]
         [switch]$Bash,
 
+        [Parameter(ParameterSetName = "DotNet")]
+        [switch]$DotNetConstructor,
+
         [Parameter(ParameterSetName = "Ruby")]
         [Parameter(ParameterSetName = "Shell")]
+        [Parameter(ParameterSetName = "DotNet")]
         [switch]$ClipBoard,
 
         [Parameter(ParameterSetName = "SetLocal")]
@@ -108,6 +116,31 @@ function Get-ATIAMSessionCredentials
         {
             $sb.ToString() | clip.exe
             Write-Host "BASH shell env vars copied to clipboard"
+        }
+        else
+        {
+            $sb.ToString()
+        }
+    }
+    elseif ($DotNetConstructor)
+    {
+        $sb = New-Object System.Text.StringBuilder
+        $arr = @(
+            "`"$($cred.AccessKey)`""
+            "`"$($cred.SecretKey)`""
+        )
+
+        if ($cred.UseToken)
+        {
+            $arr += "`"$($cred.Token)`""
+        }
+
+        $sb.AppendLine("new SessionAWSCredentials($([string]::Join(",`n", $arr)));") | Out-Null
+
+        if ($ClipBoard)
+        {
+            $sb.ToString() | clip.exe
+            Write-Host "DotNet constructor copied to clipboard"
         }
         else
         {
