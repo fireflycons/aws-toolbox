@@ -81,7 +81,7 @@ function Get-ATEBEnvironmentResourceList
 
     $allEnvs = $env |
         Where-Object {
-            ('Updating', 'Ready') -icontains $_.Status
+            ('Launching', 'Updating', 'Ready') -icontains $_.Status
         } |
         ForEach-Object {
 
