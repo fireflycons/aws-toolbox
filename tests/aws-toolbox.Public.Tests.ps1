@@ -229,4 +229,49 @@ InModuleScope -Module $ModuleName {
             }
         }
     }
+
+    Describe 'IAM' {
+
+        Context 'AWSCLI Credential Source' {
+
+            $expectedAccessKey = 'ASIAKHKJHLJEXAMPLE'
+            $expectedSecretKey = 'hkjhLJlkjAKJlkjALKJALKjEXAMPLE'
+            $expectedToken = 'gkjjiouLJLKJoihoIJKHkjjGUhlkJPJEXAMPLE'
+            $expectedExpiry = [DateTime]'2100-01-01'
+
+            Mock -CommandName 'Get-StoredAwsCredentials' -MockWith {
+
+                New-Object PSObject -Property @{
+
+                    AccessKey = $expectedAccessKey
+                    SecretKey = $expectedSecretKey
+                    Token = $expectedToken
+                    Expires = $expectedExpiry
+                    UseToken = $true
+                }
+            }
+
+            $result = Get-ATIAMSessionCredentials -AwsCli | ConvertFrom-Json
+
+            It 'Should yield expected access key' {
+                
+                $result.AccessKeyId | Should Be $expectedAccessKey
+            }
+
+            It 'Should yield expected secret key' {
+                
+                $result.SecretAccessKey | Should Be $expectedSecretKey
+            }
+
+            It 'Should yield expected access key' {
+                
+                $result.SessionToken | Should Be $expectedToken
+            }
+
+            It 'Should yield expected expiry' {
+                
+                $result.Expiration | Should Be $expectedExpiry.ToString('s')
+            }
+        }
+    }
 }

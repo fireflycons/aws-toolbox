@@ -60,22 +60,20 @@ function Get-ATIAMSessionCredentials
         [Parameter(ParameterSetName = "DotNet")]
         [switch]$ClipBoard,
 
+        [Parameter(ParameterSetName = "AwsCli")]
+        [switch]$AwsCli,
+
         [Parameter(ParameterSetName = "SetLocal")]
         [switch]$SetLocal
     )
 
-    # Check user authenticated
-    if (-not (Test-Path variable:StoredAWSCredentials))
+    $cred = Get-StoredAwsCredentials
+
+    if (-not $AwsCli)
     {
-        throw "Please authenticate with AWSPowerShell first (Set-AWSCredential)"
+        # aws-cli should renew the keys when it needs to
+        Write-Warning "Expiry time for these keys: $($cred.Expires.ToLocalTime().ToString("HH:mm:ss")). You will need to re-run this script after then to regenerate keys."
     }
-
-    # Get the AWSCredential object from the shell stored credential
-    $cred = $StoredAwsCredentials.GetType().
-        GetProperty('Credentials', ([System.Reflection.BindingFlags]::NonPublic -bor [System.Reflection.BindingFlags]::Instance)).
-        GetValue($StoredAwsCredentials).GetCredentials() | Select-Object *
-
-    Write-Warning "Expiry time for these keys: $($cred.Expires.ToLocalTime().ToString("HH:mm:ss")). You will need to re-run this script after then to regenerate keys."
 
     if ($Ruby)
     {
@@ -146,6 +144,22 @@ function Get-ATIAMSessionCredentials
         {
             $sb.ToString()
         }
+    }
+    elseif ($AwsCli)
+    {
+        if (-not ($cred.UseToken -and ($cred.PSObject.Properties | Where-Object { $_.Name -eq 'Expires'})))
+        {
+            throw "Credential of type $($cred).GetType()) not suitable for aws-cli external credential source"
+        }
+
+        New-Object PSObject -Property @{
+            Version = 1
+            AccessKeyId = $cred.AccessKey
+            SecretAccessKey = $cred.SecretKey
+            SessionToken = $cred.Token
+            Expiration = $cred.Expires.ToString('s')
+        } |
+        ConvertTo-Json
     }
     elseif ($PSCmdlet.ParameterSetName -ieq 'SetLocal')
     {
