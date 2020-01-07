@@ -27,6 +27,16 @@ Get-ATIAMSessionCredentials [-Ruby] [-ClipBoard] [<CommonParameters>]
 Get-ATIAMSessionCredentials [-Bash] [-ClipBoard] [<CommonParameters>]
 ```
 
+### DotNet
+```
+Get-ATIAMSessionCredentials [-DotNetConstructor] [-ClipBoard] [<CommonParameters>]
+```
+
+### AwsCli
+```
+Get-ATIAMSessionCredentials [-AwsCli] [<CommonParameters>]
+```
+
 ## DESCRIPTION
 If your organisation uses federated authentication (SAML etc) for API authentication with AWS,
 this cmdlet enables you to get a set of temporary keys for use with applications that do not
@@ -61,6 +71,13 @@ Get-ATIAMSessionCredentials -Ruby -ClipBoard
 Copies ruby ENV statements to create the AWS environment variables for ruby direct to clipboard.
 Paste into your irb shell environment.
 
+### EXAMPLE 4
+```
+credential_process = powershell.exe -Command "Import-Module aws-toolbox; Set-AWSCredential -ProfileName your_federated_creds_profile; Get-ATIAMSessionCredentials -AwsCli"
+```
+
+This example is a line you would put into your aws/credentials file.
+
 ## PARAMETERS
 
 ### -Ruby
@@ -93,12 +110,45 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### -DotNetConstructor
+The credentials are formatted as new SessionAWSCredentials(...) and output to the console.
+Note that you would not want to store this in any code.
+Useful only for quick debugging.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: DotNet
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### -ClipBoard
 If set, output of -Ruby or -Bash is copied directly to clipboard, so you can paste them into code or your active Ruby or Shell prompt
 
 ```yaml
 Type: SwitchParameter
-Parameter Sets: Ruby, Shell
+Parameter Sets: Ruby, Shell, DotNet
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -AwsCli
+Instructs the command to return a credential source for use with aws cli.
+See https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sourcing-external.html
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: AwsCli
 Aliases:
 
 Required: False

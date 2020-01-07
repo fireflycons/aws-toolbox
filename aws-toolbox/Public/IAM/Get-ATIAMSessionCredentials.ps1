@@ -17,6 +17,10 @@ function Get-ATIAMSessionCredentials
         The credentials are set as environment variables AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN in the current shell.
         Proceed to run your application that supports environment-based credentails in this shell.
 
+    .PARAMETER AwsCli
+        Instructs the command to return a credential source for use with aws cli.
+        See https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sourcing-external.html
+
     .PARAMETER Ruby
         The credentials are formatted as ENV[] = staements and output to the console
 
@@ -41,6 +45,10 @@ function Get-ATIAMSessionCredentials
     .EXAMPLE
         Get-ATIAMSessionCredentials -Ruby -ClipBoard
         Copies ruby ENV statements to create the AWS environment variables for ruby direct to clipboard. Paste into your irb shell environment.
+
+    .EXAMPLE
+        credential_process = powershell.exe -Command "Import-Module aws-toolbox; Set-AWSCredential -ProfileName your_federated_creds_profile; Get-ATIAMSessionCredentials -AwsCli"
+        This example is a line you would put into your aws/credentials file.
 
 #>
     [CmdletBinding(DefaultParameterSetName = 'SetLocal')]

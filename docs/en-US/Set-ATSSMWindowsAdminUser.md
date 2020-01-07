@@ -12,7 +12,7 @@ Use SSM to set up an admin user on one or more Windows instances
 
 ## SYNTAX
 
-### ByUserName
+### ByUsername
 ```
 Set-ATSSMWindowsAdminUser -InstanceId <String[]> -Username <String> -Password <String> [<CommonParameters>]
 ```
@@ -65,7 +65,7 @@ Username to set
 
 ```yaml
 Type: String
-Parameter Sets: ByUserName
+Parameter Sets: ByUsername
 Aliases:
 
 Required: True
@@ -80,7 +80,7 @@ Password to set
 
 ```yaml
 Type: String
-Parameter Sets: ByUserName
+Parameter Sets: ByUsername
 Aliases:
 
 Required: True
