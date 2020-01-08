@@ -270,7 +270,7 @@ InModuleScope -Module $ModuleName {
 
             It 'Should yield expected expiry' {
                 
-                $result.Expiration | Should Be $expectedExpiry.ToString('s')
+                $result.Expiration | Should Be $expectedExpiry.ToString('s').SubString(0, 19)
             }
         }
     }
