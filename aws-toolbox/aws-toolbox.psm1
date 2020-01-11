@@ -31,6 +31,7 @@ if (-not ((Test-ATEC2IsRunningInEC2) -or $null -ne (Get-Item variable:StoredAWSC
 
 $script:PluginConfig = Import-PluginConfiguration
 $script:moduleConfig = Import-AwsToolboxConfiguration
+$script:isPester = $null -ne (Get-PSCallStack | Where-Object Command -eq 'Invoke-Pester')
 
 # Export public functions
 Export-ModuleMember -Function $Public.Basename

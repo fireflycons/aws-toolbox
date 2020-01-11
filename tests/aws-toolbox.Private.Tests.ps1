@@ -21,7 +21,8 @@ if (($ManifestFile | Measure-Object).Count -ne 1)
     throw "Cannot locate $ModuleName.psd1"
 }
 
-Import-Module $manifestFile
+$global:scriptRoot = $PSScriptRoot
+$global:thisModule = Import-Module $manifestFile -PassThru
 
 InModuleScope $ModuleName {
 
@@ -289,6 +290,239 @@ InModuleScope $ModuleName {
 
                 Get-WorkspaceBucket | Out-Null
                 Assert-MockCalled -CommandName Write-S3BucketTagging -Times 0 -Scope It
+            }
+        }
+    }
+
+    Describe 'AWS CLI Configuration Files' {
+
+        Context 'Read existing configuation' {
+
+            $config = Read-CliConfigurationFile -Config
+
+            It 'Reads the config file from user profile' {
+
+                if (($config.Keys | Measure-Object).Count -eq 0)
+                {
+                    Set-ItResult -Inconclusive -Because "No AWS config file is present"
+                }
+            }
+
+            It 'May have a [default] section' {
+
+                if (($config.Keys | Measure-Object).Count -eq 0)
+                {
+                    Set-ItResult -Inconclusive -Because "No AWS config file is present"
+                }
+                else
+                {
+                    if (-not ($config.Keys | Where-Object { $_ -eq 'default'}))
+                    {
+                        Set-ItResult -Inconclusive -Because "A [default] section was not present"
+                    }
+                }
+            }
+        }
+
+        Context 'Read existing credentials' {
+
+            $config = Read-CliConfigurationFile -Credentials
+
+            It 'Reads the credentails file from user profile' {
+
+                if (($config.Keys | Measure-Object).Count -eq 0)
+                {
+                    Set-ItResult -Inconclusive -Because "No AWS credentials file is present"
+                }
+            }
+
+            It 'May have a [default] section' {
+
+                if (($config.Keys | Measure-Object).Count -eq 0)
+                {
+                    Set-ItResult -Inconclusive -Because "No AWS credentials file is present"
+                }
+                else
+                {
+                    if (-not $config.ContainsKey('default'))
+                    {
+                        Set-ItResult -Inconclusive -Because "A [default] section was not present"
+                    }
+                }
+            }
+
+            if ($config.ContainsKey('default'))
+            {
+                $sectionData = $config['default']
+
+                It 'Has an access key in [default] section' {
+
+                    $sectionData.ContainsKey('aws_access_key_id') | Should -BeTrue
+                }
+
+                It 'Has an secret key in [default] section' {
+
+                    $sectionData.ContainsKey('aws_secret_access_key') | Should -BeTrue
+                }
+            }
+        }
+
+        Context 'Writing the config file' {
+
+            $initialData = @{
+                default = @{
+                    region = 'eu-west-1'
+                }
+            }
+
+            $configFile = Join-Path $TestDrive 'config'
+            $fileSize = 0
+
+            It 'Creates initial config' {
+
+                $initialData | Write-CliConfigurationFile -Config -AlternateDirectory $TestDrive
+                $configFile | Should -Exist
+                $fileSize = (Get-Item $configFile).Length
+            }
+
+            It 'Updates config file' {
+
+                $initialData['default'].Add('output', 'json')
+                $initialData | Write-CliConfigurationFile -Config -AlternateDirectory $TestDrive
+                $configFile | Should -Exist
+                $newFileSize = (Get-Item $configFile).Length
+
+                $newFileSize | Should -BeGreaterThan $fileSize -Because "the file should have been appended."
+            }
+
+            $storedData = Read-CliConfigurationFile -Config -AlternateDirectory $TestDrive
+
+            It 'Reads the config file created above' {
+
+                ($storedData.Keys | Measure-Object).Count | Should -BeExactly 1
+            }
+
+            It 'Has a [default] section' {
+
+                $storedData.ContainsKey('default') | Should -BeTrue
+            }
+
+            if ($storedData.ContainsKey('default'))
+            {
+                $sectionData = $storedData['default']
+
+                It 'Should have stored correct default region' {
+
+                    $sectionData.ContainsKey('region') | Should -BeTrue
+                    $sectionData['region'] | Should -Be 'eu-west-1'
+                }
+
+                It 'Should have stored correct output format' {
+
+                    $sectionData.ContainsKey('output') | Should -BeTrue
+                    $sectionData['output'] | Should -Be 'json'
+                }
+            }
+        }
+
+        Context 'Writing the credential file' {
+
+            $accessKey = 'AKIAITL6SYXXQEXAMPLE'
+            $secretKey = '+pdwYIYvKVpW1//FokBjqFXxOnzbmyEXAMPLE'
+            $initialData = @{
+                mycreds = @{
+                    aws_access_key_id = $accessKey
+                    aws_secret_access_key = $secretKey
+                }
+            }
+
+            $credentialFile = Join-Path $TestDrive 'credentials'
+
+            It 'Creates initial credentials' {
+
+                $initialData | Write-CliConfigurationFile -Credentials -AlternateDirectory $TestDrive
+                $credentialFile | Should -Exist
+            }
+
+            $storedData = Read-CliConfigurationFile -Credentials -AlternateDirectory $TestDrive
+
+            It 'Reads the credentials file created above' {
+
+                ($storedData.Keys | Measure-Object).Count | Should -BeExactly 1
+            }
+
+            It 'Has a [mycreds] section' {
+
+                $storedData.ContainsKey('mycreds') | Should -BeTrue
+            }
+
+            if ($storedData.ContainsKey('mycreds'))
+            {
+                $sectionData = $storedData['mycreds']
+
+                It 'Should have stored correct access key' {
+
+                    $sectionData.ContainsKey('aws_access_key_id') | Should -BeTrue
+                    $sectionData['aws_access_key_id'] | Should -Be $accessKey
+                }
+
+                It 'Should have stored correct secret key' {
+
+                    $sectionData.ContainsKey('aws_secret_access_key') | Should -BeTrue
+                    $sectionData['aws_secret_access_key'] | Should -Be $secretKey
+                }
+
+                $accessKey = 'AKIAITXXXXXXQEXAMPLE'
+
+                $initialData['mycreds']['aws_access_key_id'] = $accessKey
+
+                It 'Updates credentials file with new access key' {
+
+                    $initialData | Write-CliConfigurationFile -Credentials -AlternateDirectory $TestDrive
+                    $credentialFile | Should -Exist
+                }
+
+                $sectionData = (Read-CliConfigurationFile -Credentials -AlternateDirectory $TestDrive)['mycreds']
+
+                It 'Has stored updated access key' {
+
+                    $sectionData.ContainsKey('aws_secret_access_key') | Should -BeTrue
+                    $sectionData['aws_secret_access_key'] | Should -Be $secretKey
+                }
+
+                It 'Has not changed the secret key' {
+
+                    $sectionData.ContainsKey('aws_secret_access_key') | Should -BeTrue
+                    $sectionData['aws_secret_access_key'] | Should -Be $secretKey
+                }
+            }
+        }
+    }
+
+    Describe 'AWS CLI External Credential Source' {
+
+        Context 'Credential Souce Generation' {
+
+            $credProcess =  Get-CredentialProcess
+            $ps = $(
+                if ($PSEdition -eq 'Desktop')
+                {
+                    'powershell'
+                }
+                else
+                {
+                    'pwsh'
+                }
+            )
+
+            It 'Should select correct PowerShell interpreter' {
+
+                $credProcess.PowerShell | Should -Be (Get-Command $ps).Source
+            }
+
+            It 'Should select this module' {
+
+                $credProcess.Module | Should -Be $thisModule.Name
             }
         }
     }
