@@ -6,16 +6,18 @@ Function Read-CliConfigurationFile
         [switch]$Config,
 
         [Parameter(Mandatory, ParameterSetName = 'credentials')]
-        [switch]$Credentials,
-
-        [string]$AlternateDirectory
+        [switch]$Credentials
     )
 
     $FilePath = $(
 
-        if (-not [string]::IsNullOrEmpty($AlternateDirectory))
+        if ($Config -and $null -ne $env:AWS_CONFIG_FILE)
         {
-            Join-Path $AlternateDirectory $PSCmdlet.ParameterSetName
+            $env:AWS_CONFIG_FILE
+        }
+        elseif ($Credentials -and $null -ne $env:AWS_SHARED_CREDENTIALS_FILE)
+        {
+            $env:AWS_SHARED_CREDENTIALS_FILE
         }
         else
         {

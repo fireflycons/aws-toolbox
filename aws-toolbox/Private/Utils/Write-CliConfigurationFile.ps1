@@ -10,18 +10,21 @@ Function Write-CliConfigurationFile
 
         [ValidateNotNullOrEmpty()]
         [Parameter(ValueFromPipeline = $True, Mandatory = $True)]
-        [Hashtable]$InputObject,
-
-        [string]$AlternateDirectory
+        [Hashtable]$InputObject
     )
 
     Begin
     {
         $Encoding = 'ASCII'
         $FilePath = $(
-            if (-not [string]::IsNullOrEmpty($AlternateDirectory))
+
+            if ($Config -and $null -ne $env:AWS_CONFIG_FILE)
             {
-                Join-Path $AlternateDirectory $PSCmdlet.ParameterSetName
+                $env:AWS_CONFIG_FILE
+            }
+            elseif ($Credentials -and $null -ne $env:AWS_SHARED_CREDENTIALS_FILE)
+            {
+                $env:AWS_SHARED_CREDENTIALS_FILE
             }
             else
             {
@@ -65,7 +68,7 @@ Function Write-CliConfigurationFile
                     }
                     else
                     {
-                        Add-Content -Path $outFile -Value "$j=$($InputObject[$i][$j])" -Encoding $Encoding
+                        Add-Content -Path $outFile -Value "$j = $($InputObject[$i][$j])" -Encoding $Encoding
                     }
 
                 }

@@ -296,6 +296,9 @@ InModuleScope $ModuleName {
 
     Describe 'AWS CLI Configuration Files' {
 
+        $savedConfig = $env:AWS_CONFIG_FILE
+        $savedCredentials = $env:AWS_SHARED_CREDENTIALS_FILE
+
         Context 'Read existing configuation' {
 
             $config = Read-CliConfigurationFile -Config
@@ -353,21 +356,33 @@ InModuleScope $ModuleName {
 
             if ($config.ContainsKey('default'))
             {
-                $sectionData = $config['default']
+                $script:sectionData = $config['default']
 
                 It 'Has an access key in [default] section' {
 
-                    $sectionData.ContainsKey('aws_access_key_id') | Should -BeTrue
+                    $script:sectionData.ContainsKey('aws_access_key_id') | Should -BeTrue
                 }
 
                 It 'Has an secret key in [default] section' {
 
-                    $sectionData.ContainsKey('aws_secret_access_key') | Should -BeTrue
+                    $script:sectionData.ContainsKey('aws_secret_access_key') | Should -BeTrue
                 }
             }
         }
 
         Context 'Writing the config file' {
+
+            $script:storedData = $null
+
+            BeforeEach {
+
+                $env:AWS_CONFIG_FILE = Join-Path $TestDrive 'config'
+            }
+
+            AfterEach {
+
+                $env:AWS_CONFIG_FILE = $savedConfig
+            }
 
             $initialData = @{
                 default = @{
@@ -380,7 +395,7 @@ InModuleScope $ModuleName {
 
             It 'Creates initial config' {
 
-                $initialData | Write-CliConfigurationFile -Config -AlternateDirectory $TestDrive
+                $initialData | Write-CliConfigurationFile -Config
                 $configFile | Should -Exist
                 $fileSize = (Get-Item $configFile).Length
             }
@@ -388,44 +403,57 @@ InModuleScope $ModuleName {
             It 'Updates config file' {
 
                 $initialData['default'].Add('output', 'json')
-                $initialData | Write-CliConfigurationFile -Config -AlternateDirectory $TestDrive
+                $initialData | Write-CliConfigurationFile -Config
                 $configFile | Should -Exist
                 $newFileSize = (Get-Item $configFile).Length
 
                 $newFileSize | Should -BeGreaterThan $fileSize -Because "the file should have been appended."
             }
 
-            $storedData = Read-CliConfigurationFile -Config -AlternateDirectory $TestDrive
 
             It 'Reads the config file created above' {
 
-                ($storedData.Keys | Measure-Object).Count | Should -BeExactly 1
+                $script:storedData = Read-CliConfigurationFile -Config
+                ($script:storedData.Keys | Measure-Object).Count | Should -BeExactly 1
             }
 
             It 'Has a [default] section' {
 
-                $storedData.ContainsKey('default') | Should -BeTrue
+                $script:storedData.ContainsKey('default') | Should -BeTrue
             }
 
-            if ($storedData.ContainsKey('default'))
+            if ($script:storedData.ContainsKey('default'))
             {
-                $sectionData = $storedData['default']
+                $script:sectionData = $script:storedData['default']
 
                 It 'Should have stored correct default region' {
 
-                    $sectionData.ContainsKey('region') | Should -BeTrue
-                    $sectionData['region'] | Should -Be 'eu-west-1'
+                    $script:sectionData.ContainsKey('region') | Should -BeTrue
+                    $script:sectionData['region'] | Should -Be 'eu-west-1'
                 }
 
                 It 'Should have stored correct output format' {
 
-                    $sectionData.ContainsKey('output') | Should -BeTrue
-                    $sectionData['output'] | Should -Be 'json'
+                    $script:sectionData.ContainsKey('output') | Should -BeTrue
+                    $script:sectionData['output'] | Should -Be 'json'
                 }
             }
         }
 
         Context 'Writing the credential file' {
+
+            $script:storedData = $null
+
+            BeforeEach {
+
+                $env:AWS_SHARED_CREDENTIALS_FILE = Join-Path $TestDrive 'credentials'
+            }
+
+            AfterEach {
+
+                $env:AWS_SHARED_CREDENTIALS_FILE = $savedCredentials
+            }
+
 
             $accessKey = 'AKIAITL6SYXXQEXAMPLE'
             $secretKey = '+pdwYIYvKVpW1//FokBjqFXxOnzbmyEXAMPLE'
@@ -440,36 +468,36 @@ InModuleScope $ModuleName {
 
             It 'Creates initial credentials' {
 
-                $initialData | Write-CliConfigurationFile -Credentials -AlternateDirectory $TestDrive
+                $initialData | Write-CliConfigurationFile -Credentials
                 $credentialFile | Should -Exist
             }
 
-            $storedData = Read-CliConfigurationFile -Credentials -AlternateDirectory $TestDrive
 
             It 'Reads the credentials file created above' {
 
-                ($storedData.Keys | Measure-Object).Count | Should -BeExactly 1
+                $script:storedData = Read-CliConfigurationFile -Credentials
+                ($script:storedData.Keys | Measure-Object).Count | Should -BeExactly 1
             }
 
             It 'Has a [mycreds] section' {
 
-                $storedData.ContainsKey('mycreds') | Should -BeTrue
+                $script:storedData.ContainsKey('mycreds') | Should -BeTrue
             }
 
-            if ($storedData.ContainsKey('mycreds'))
+            if ($script:storedData.ContainsKey('mycreds'))
             {
-                $sectionData = $storedData['mycreds']
+                $script:sectionData = $script:storedData['mycreds']
 
                 It 'Should have stored correct access key' {
 
-                    $sectionData.ContainsKey('aws_access_key_id') | Should -BeTrue
-                    $sectionData['aws_access_key_id'] | Should -Be $accessKey
+                    $script:sectionData.ContainsKey('aws_access_key_id') | Should -BeTrue
+                    $script:sectionData['aws_access_key_id'] | Should -Be $accessKey
                 }
 
                 It 'Should have stored correct secret key' {
 
-                    $sectionData.ContainsKey('aws_secret_access_key') | Should -BeTrue
-                    $sectionData['aws_secret_access_key'] | Should -Be $secretKey
+                    $script:sectionData.ContainsKey('aws_secret_access_key') | Should -BeTrue
+                    $script:sectionData['aws_secret_access_key'] | Should -Be $secretKey
                 }
 
                 $accessKey = 'AKIAITXXXXXXQEXAMPLE'
@@ -478,22 +506,22 @@ InModuleScope $ModuleName {
 
                 It 'Updates credentials file with new access key' {
 
-                    $initialData | Write-CliConfigurationFile -Credentials -AlternateDirectory $TestDrive
+                    $initialData | Write-CliConfigurationFile -Credentials
                     $credentialFile | Should -Exist
                 }
 
-                $sectionData = (Read-CliConfigurationFile -Credentials -AlternateDirectory $TestDrive)['mycreds']
 
                 It 'Has stored updated access key' {
 
-                    $sectionData.ContainsKey('aws_secret_access_key') | Should -BeTrue
-                    $sectionData['aws_secret_access_key'] | Should -Be $secretKey
+                    $script:sectionData = (Read-CliConfigurationFile -Credentials)['mycreds']
+                    $script:sectionData.ContainsKey('aws_secret_access_key') | Should -BeTrue
+                    $script:sectionData['aws_secret_access_key'] | Should -Be $secretKey
                 }
 
                 It 'Has not changed the secret key' {
 
-                    $sectionData.ContainsKey('aws_secret_access_key') | Should -BeTrue
-                    $sectionData['aws_secret_access_key'] | Should -Be $secretKey
+                    $script:sectionData.ContainsKey('aws_secret_access_key') | Should -BeTrue
+                    $script:sectionData['aws_secret_access_key'] | Should -Be $secretKey
                 }
             }
         }
