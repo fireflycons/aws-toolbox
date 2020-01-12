@@ -9,6 +9,39 @@ Function Read-CliConfigurationFile
         [switch]$Credentials
     )
 
+    function Read-SubSection
+    {
+        param
+        (
+            [System.IO.StreamReader]$StreamReader
+        )
+
+        $retval = @{}
+
+        $line = [String]::Empty
+        $finished = $false
+
+        while (-not $finished -and $null -ne ($line = $StreamReader.ReadLine()))
+        {
+            switch -regex ($line)
+            {
+                "\s+(.+?)\s*=\s*(.*)"
+                {
+                    $name, $value = $matches[1..2]
+                    $retval.Add($name, $value)
+                }
+
+                "^[^\s]"
+                {
+                    # End of indented section
+                    $finished = $true
+                }
+            }
+        }
+
+        $retval
+    }
+
     $FilePath = $(
 
         if ($Config -and $null -ne $env:AWS_CONFIG_FILE)
@@ -36,41 +69,72 @@ Function Read-CliConfigurationFile
 
     if (Test-Path -Path $FilePath)
     {
-        switch -regex -file $FilePath
+        try
         {
-            "^\[(.+)\]$"
+            $sr = [System.IO.StreamReader]([System.IO.File]::OpenRead($FilePath))
+
+            $line = [String]::Empty
+
+            while ($null -ne ($line = $sr.ReadLine()))
             {
-                # Section
-                $section = $matches[1]
-                $configuration[$section] = @{ }
-                $CommentCount = 0
-            }
-            "^(;.*)$"
-            {
-                # Comment
-                if (!($section))
+                switch -regex ($line)
                 {
-                    $section = "No-Section"
-                    $configuration[$section] = @{ }
+                    "^\[(.+)\]$"
+                    {
+                        # Section
+                        $section = $matches[1]
+                        $configuration[$section] = @{ }
+                        $CommentCount = 0
+                    }
+                    "^(;.*)$"
+                    {
+                        # Comment
+                        if (!($section))
+                        {
+                            $section = "No-Section"
+                            $configuration[$section] = @{ }
+                        }
+                        $value = $matches[1]
+                        $CommentCount = $CommentCount + 1
+                        $name = "Comment" + $CommentCount
+                        $configuration[$section][$name] = $value
+                    }
+                    '^(.+?)\s*=\s*$'
+                    {
+                        # Start of indented section
+                        # Key
+                        if (!($section))
+                        {
+                            $section = "No-Section"
+                            $configuration[$section] = @{ }
+                        }
+                        $name = $matches.1
+                        $configuration[$section][$name] = Read-SubSection -StreamReader $sr
+                        break
+                   }
+                    "(.+?)\s*=\s*(.*)"
+                    {
+                        # Key
+                        if (!($section))
+                        {
+                            $section = "No-Section"
+                            $configuration[$section] = @{ }
+                        }
+                        $name, $value = $matches[1..2]
+                        $configuration[$section][$name] = $value
+                    }
                 }
-                $value = $matches[1]
-                $CommentCount = $CommentCount + 1
-                $name = "Comment" + $CommentCount
-                $configuration[$section][$name] = $value
             }
-            "(.+?)\s*=\s*(.*)"
+        }
+        finally
+        {
+            if ($sr)
             {
-                # Key
-                if (!($section))
-                {
-                    $section = "No-Section"
-                    $configuration[$section] = @{ }
-                }
-                $name, $value = $matches[1..2]
-                $configuration[$section][$name] = $value
+                $sr.Dispose()
             }
         }
     }
+
     else
     {
         Write-Warning "No AWS $($PSCmdlet.ParameterSetName) file found."

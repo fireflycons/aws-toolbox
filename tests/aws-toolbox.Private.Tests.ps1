@@ -410,7 +410,6 @@ InModuleScope $ModuleName {
                 $newFileSize | Should -BeGreaterThan $fileSize -Because "the file should have been appended."
             }
 
-
             It 'Reads the config file created above' {
 
                 $script:storedData = Read-CliConfigurationFile -Config
@@ -420,22 +419,48 @@ InModuleScope $ModuleName {
             It 'Has a [default] section' {
 
                 $script:storedData.ContainsKey('default') | Should -BeTrue
+                $script:sectionData = $script:storedData['default']
             }
 
-            if ($script:storedData.ContainsKey('default'))
-            {
-                $script:sectionData = $script:storedData['default']
+            It 'Should have stored correct default region' {
 
-                It 'Should have stored correct default region' {
+                $script:sectionData.ContainsKey('region') | Should -BeTrue
+                $script:sectionData['region'] | Should -Be 'eu-west-1'
+            }
 
-                    $script:sectionData.ContainsKey('region') | Should -BeTrue
-                    $script:sectionData['region'] | Should -Be 'eu-west-1'
+            It 'Should have stored correct output format' {
+
+                $script:sectionData.ContainsKey('output') | Should -BeTrue
+                $script:sectionData['output'] | Should -Be 'json'
+            }
+
+            $s3Options = @{
+                max_concurrent_requests = 20
+                max_queue_size = 10000
+                multipart_threshold = "64MB"
+                multipart_chunksize = "16MB"
+                max_bandwidth = "50MB/s"
+                use_accelerate_endpoint = "true"
+                addressing_style = "path"
                 }
 
-                It 'Should have stored correct output format' {
+            It 'Writes S3 options' {
 
-                    $script:sectionData.ContainsKey('output') | Should -BeTrue
-                    $script:sectionData['output'] | Should -Be 'json'
+                $initialData['default'].Add('s3', $s3Options)
+                $initialData | Write-CliConfigurationFile -Config
+                # Test it doesn't get borked reading then writing
+                Read-CliConfigurationFile -Config | Write-CliConfigurationFile -Config
+                $script:newConfig = Read-CliConfigurationFile -Config
+            }
+
+            $s3Options.Keys |
+            ForEach-Object {
+
+                $opt = $_
+
+                It "Should corrently set s3 option '$opt'" {
+
+                    $script:newConfig['default']['s3'][$opt] | Should -Be $s3Options[$opt]
                 }
             }
         }
