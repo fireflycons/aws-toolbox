@@ -165,7 +165,7 @@ function Get-ATIAMSessionCredentials
             AccessKeyId = $cred.AccessKey
             SecretAccessKey = $cred.SecretKey
             SessionToken = $cred.Token
-            Expiration = $cred.Expires.ToString('s').SubString(0, 19)
+            Expiration = $cred.Expires.ToString('s').SubString(0, 19) + "Z"
         } |
         ConvertTo-Json
     }
