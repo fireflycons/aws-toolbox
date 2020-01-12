@@ -70,4 +70,4 @@ Set configurable items for this module
 Runs the configured diff tool on a pair of files
 
 ### [Set-ATIAMCliExternalCredentials](Set-ATIAMCliExternalCredentials.md)
-Configue aws-toolbox as an AWS CLI Credential Process
+Configue aws-toolbox as an AWS CLI Credential Process e.g. to use your SAML credentials.
