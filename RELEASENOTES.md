@@ -1,5 +1,10 @@
 # Release Notes
 
+## 0.17.0
+
+* Add `-AwsCli` switch to `Get-ATIAMSessionCredentials` to output in external credential format for AWS CLI
+* Add `Set-ATIAMCliExternalCredentials` cmdlet to insert aws-toolbox as an external credential process for supplying SAML credentials to AWS CLI
+
 ## 0.16.0
 
 * `Set-ATSSMWindowsAdminUser` Use ADSI to get better control over setting of credentials. If user exists update password, else create user and add to administrators.
