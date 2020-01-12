@@ -16,6 +16,14 @@ function Set-ATIAMCliExternalCredentials
     .PARAMETER CliProfileName
         Name of profile to create in CLI credentials file. If omitted, then the name
         passed to ProfileName will be used.
+
+    .EXAMPLE
+        Set-ATIAMCliExternalCredentials -ProfileName MySamlProfile
+        Creates an AWS CLI external credential profile named 'MySamlProfile' that maps onto the PowerShell profile named 'MySamlProfile'
+
+    .EXAMPLE
+        Set-ATIAMCliExternalCredentials -ProfileName MySamlProfile -CliProfileName MyCliSamlProfile
+        Creates an AWS CLI external credential profile named 'MyCliSamlProfile' that maps onto the PowerShell profile named 'MySamlProfile'
 #>
     [CmdletBinding()]
     param

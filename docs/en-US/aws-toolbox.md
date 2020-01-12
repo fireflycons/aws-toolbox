@@ -68,3 +68,6 @@ Set configurable items for this module
 
 ### [Invoke-ATDiffTool](Invoke-ATDiffTool)
 Runs the configured diff tool on a pair of files
+
+### [Set-ATIAMCliExternalCredentials](Set-ATIAMCliExternalCredentials.md)
+Configue aws-toolbox as an AWS CLI Credential Process
