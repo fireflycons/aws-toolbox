@@ -1,6 +1,12 @@
 function Get-CredentialProcess
 {
+    param
+    (
+        [string]$CacheScriptPath
+    )
+
     $edition = 'Desktop'
+    $windows = $PSVersionTable.PSVersion.Major -lt 6 -or $IsWindows
 
     if (Get-Variable -Name PSEdition)
     {
@@ -21,20 +27,30 @@ function Get-CredentialProcess
         Module = (Get-PSCallStack)[0].InvocationInfo.MyCommand.Module.Name
     }
 
-    $sb = New-Object System.Text.StringBuilder
-
-    if ($process.PowerShell -match '\s')
+    if ($CacheScriptPath -match '\s')
     {
-        $sb.Append("`"$($process.PowerShell)`"") | Out-Null
-    }
-    else
-    {
-        $sb.Append($process.PowerShell) | Out-Null
+        $CacheScriptPath = "`"$CacheScripPath`""
     }
 
-    $sb.Append(" -Command `"Import-Module $($process.Module); Set-AwsCredential {0}; Get-ATIAMSessionCredentials -AwsCli`"") | Out-Null
+    $process['CredentialProcess'] = $(
 
-    $process['CredentialProcess'] = $sb.ToString()
+        if ($windows)
+        {
+            if ($process.PowerShell -match '\s')
+            {
+                "`"$($process.PowerShell)`" -File $CacheScriptPath"
+            }
+            else
+            {
+                "$($process.PowerShell) -File $CacheScriptPath"
+            }
+        }
+        else
+        {
+            # shebang executable script
+            $CacheScriptPath
+        }
+    )
 
     $process
 }

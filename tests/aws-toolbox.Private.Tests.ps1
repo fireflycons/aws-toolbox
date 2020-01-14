@@ -554,9 +554,11 @@ InModuleScope $ModuleName {
 
     Describe 'AWS CLI External Credential Source' {
 
-        Context 'Credential Souce Generation' {
+        $savedCredentials = $env:AWS_SHARED_CREDENTIALS_FILE
 
-            $credProcess =  Get-CredentialProcess
+        Context 'Credential Process Generation' {
+
+            $credProcess =  Get-CredentialProcess -CacheScriptPath (Join-Path ([IO.Path]::GetTempPath()) "test-cache.ps1")
             $ps = $(
                 if ($PSEdition -eq 'Desktop')
                 {
@@ -576,6 +578,24 @@ InModuleScope $ModuleName {
             It 'Should select this module' {
 
                 $credProcess.Module | Should -Be $thisModule.Name
+            }
+        }
+
+        Context 'Credential Source Configuration' {
+
+            BeforeEach {
+
+                $env:AWS_SHARED_CREDENTIALS_FILE = Join-Path $TestDrive 'credentials'
+            }
+
+            AfterEach {
+
+                $env:AWS_SHARED_CREDENTIALS_FILE = $savedCredentials
+            }
+
+            It 'Does something' {
+
+                Set-ATIAMCliExternalCredentials -ProfileName eddie
             }
         }
     }

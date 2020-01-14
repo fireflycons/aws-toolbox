@@ -42,28 +42,7 @@ Function Read-CliConfigurationFile
         $retval
     }
 
-    $FilePath = $(
-
-        if ($Config -and $null -ne $env:AWS_CONFIG_FILE)
-        {
-            $env:AWS_CONFIG_FILE
-        }
-        elseif ($Credentials -and $null -ne $env:AWS_SHARED_CREDENTIALS_FILE)
-        {
-            $env:AWS_SHARED_CREDENTIALS_FILE
-        }
-        else
-        {
-            if ((Get-OperatingSystem) -eq 'Windows')
-            {
-                Join-Path $env:USERPROFILE ".aws\$($PSCmdlet.ParameterSetName)"
-            }
-            else
-            {
-                "~/.aws/$($PSCmdlet.ParameterSetName)"
-            }
-        }
-    )
+    $FilePath = (Get-CliConfiguration -ConfigurationFileName $PSCmdlet.ParameterSetName).FilePath
 
     $configuration = @{ }
 

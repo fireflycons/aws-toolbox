@@ -46,28 +46,7 @@ Function Write-CliConfigurationFile
             }
         }
 
-        $FilePath = $(
-
-            if ($Config -and $null -ne $env:AWS_CONFIG_FILE)
-            {
-                $env:AWS_CONFIG_FILE
-            }
-            elseif ($Credentials -and $null -ne $env:AWS_SHARED_CREDENTIALS_FILE)
-            {
-                $env:AWS_SHARED_CREDENTIALS_FILE
-            }
-            else
-            {
-                if ((Get-OperatingSystem) -eq 'Windows')
-                {
-                    Join-Path $env:USERPROFILE ".aws\$($PSCmdlet.ParameterSetName)"
-                }
-                else
-                {
-                    "~/.aws/$($PSCmdlet.ParameterSetName)"
-                }
-            }
-        )
+        $FilePath = (Get-CliConfiguration -ConfigurationFileName $PSCmdlet.ParameterSetName).FilePath
     }
 
     Process
@@ -76,12 +55,12 @@ Function Write-CliConfigurationFile
 
         if (-not ($outFile))
         {
-            Throw "Could not create File"
+            Throw "Could not create file: $outFile"
         }
 
         foreach ($i in $InputObject.keys)
         {
-            if (-not ($($InputObject[$i].GetType().Name) -eq "Hashtable"))
+            if (-not ($($InputObject[$i] -is [System.Collections.IDictionary])))
             {
                 #No Sections
                 Add-Content -Path $outFile -Value "$i=$($InputObject[$i])" -Encoding ascii
@@ -97,7 +76,5 @@ Function Write-CliConfigurationFile
     }
 
     End
-    { 
-        $x = 1
-    }
+    { }
 }
