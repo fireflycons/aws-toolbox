@@ -71,7 +71,7 @@ function Set-ATIAMCliExternalCredentials
                 if ($profile)
                 {
                     # Decode secure string back to JSON
-                    $ss = ConvertTo-SecureString $pofile.Credential
+                    $ss = ConvertTo-SecureString $profile.Credential
                     $json = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto(([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR(([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($ss)))))
 
                     # Check credential time
@@ -100,7 +100,8 @@ function Set-ATIAMCliExternalCredentials
                 {
                     $profile.Credential = $encryptedCredential
                 }
-                else {
+                else
+                {
                     $profiles += New-Object PSObject -Property @{
                         Name = $profileName
                         Credential = $encryptedCredential
