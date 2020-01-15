@@ -72,7 +72,7 @@ function Set-ATIAMCliExternalCredentials
                 {
                     # Decode secure string back to JSON
                     $ss = ConvertTo-SecureString $profile.Credential
-                    $json = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto(([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR(([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($ss)))))
+                    $json = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto(([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($ss)))
 
                     # Check credential time
                     $cred = $json | ConvertFrom-Json
@@ -89,27 +89,27 @@ function Set-ATIAMCliExternalCredentials
                     {
                         Import-Module aws-toolbox.netcore
                     }
-                }
 
-                Set-AwsCredential -ProfileName $profileName
-                $json = Get-ATIAMSessionCredentials -AwsCli
+                    Set-AwsCredential -ProfileName $profileName
+                    $json = Get-ATIAMSessionCredentials -AwsCli
 
-                $encryptedCredential = $json | ConvertTo-SecureString -AsPlainText -Force | ConvertFrom-SecureString
+                    $encryptedCredential = $json | ConvertTo-SecureString -AsPlainText -Force | ConvertFrom-SecureString
 
-                if ($profile)
-                {
-                    $profile.Credential = $encryptedCredential
-                }
-                else
-                {
-                    $profiles += New-Object PSObject -Property @{
-                        Name = $profileName
-                        Credential = $encryptedCredential
+                    if ($profile)
+                    {
+                        $profile.Credential = $encryptedCredential
                     }
-                }
+                    else
+                    {
+                        $profiles += New-Object PSObject -Property @{
+                            Name = $profileName
+                            Credential = $encryptedCredential
+                        }
+                    }
 
-                # Write out credential cache
-                $profiles | Set-Content -Path $credentialCache -Force
+                    # Write out credential cache
+                    $profiles | ConvertTo-Json | Set-Content -Path $credentialCache -Force
+                }
             }
             finally
             {
