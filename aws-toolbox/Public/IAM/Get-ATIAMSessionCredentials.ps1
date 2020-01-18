@@ -77,9 +77,10 @@ function Get-ATIAMSessionCredentials
 
     $cred = Get-StoredAwsCredentials
 
-    if (-not $AwsCli)
+    if (-not $AwsCli -and $cred.UseToken)
     {
         # aws-cli should renew the keys when it needs to
+        # Also if not UseToken, these are IAM::User creds and don't expire
         Write-Warning "Expiry time for these keys: $($cred.Expires.ToLocalTime().ToString("HH:mm:ss")). You will need to re-run this script after then to regenerate keys."
     }
 

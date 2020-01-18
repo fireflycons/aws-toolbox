@@ -1,6 +1,14 @@
 # Release Notes
 
-## 0.17.0
+## 0.17.3
+
+* Bug fix in `Get-ATIAMSessionCredentials` where a null object reference exception is thrown if converting IAM::User credentials
+
+## 0.17.2
+
+* Create a mechanism to cache external credeentials so that this module is not reloaded for every invocation of AWS CLI resulting in poor performance
+
+## 0.17.1
 
 * Add `-AwsCli` switch to `Get-ATIAMSessionCredentials` to output in external credential format for AWS CLI
 * Add `Set-ATIAMCliExternalCredentials` cmdlet to insert aws-toolbox as an external credential process for supplying SAML credentials to AWS CLI
