@@ -75,7 +75,7 @@ function Get-ATEBEnvironmentResourceList
 
     if (-not $env)
     {
-        Write-Host "Environment not found"
+        Write-Warning "Environment not found"
         return
     }
 
@@ -85,9 +85,14 @@ function Get-ATEBEnvironmentResourceList
         } |
         ForEach-Object {
 
+        $environmentId = $_.EnvironmentId
+        Write-Verbose $_.EnvironmentName
+        Write-Verbose "- Reading resource list"
+
         # Name of stack created by Elastic Beanstalk
-        $ebStackName = "awseb-$($_.EnvironmentId)-stack"
-        $resources = Get-EBEnvironmentResource -EnvironmentId $_.EnvironmentId
+        $ebStackName = "awseb-$environmentId-stack"
+        $resources = Get-EBEnvironmentResource -EnvironmentId $environmentId
+        $launchConfigurationNames = $resources.LaunchConfigurations.Name
 
         # Create summary object
         $envData = New-Object PSObject -Property @{
@@ -107,7 +112,57 @@ function Get-ATEBEnvironmentResourceList
             LaunchConfigurations = @()
         }
 
+        if ($_.Status -ieq 'Updating' -and $null -ne $_.HealthStatus)
+        {
+            # Look for additional autoscaling group created during immutable deployment
+            # Don't need to check if HealthStatus is null, as immutable implies enhanced health enabled.
+
+            Write-Verbose "- Looking for immutable deployment resources (update in progress)"
+            $additionalAsgs = Get-ASAutoScalingGroup |
+            Where-Object {
+                $_.AutoScalingGroupName -like "awseb-$environmentId-immutable-stack*"
+            } |
+            Select-Object AutoScalingGroupName, Instances, LaunchConfigurationName
+
+            if ($additionalAsgs)
+            {
+                # Add the ASG
+                $env.AutoScalingGroups = Invoke-Command {
+                    $resources.AutoScalingGroups.Name
+                    $additionalAsgs.AutoScalingGroupName
+                } |
+                Where-Object {
+                    $null -ne $_
+                }
+
+                # Add this ASG's instances
+                if (($additionalAsgs.Instances | Measure-Object).Count -gt 0)
+                {
+                    $envData.Instances.Id = Invoke-Command {
+                        $resources.Instances.Id
+                        $additionalAsgs.Instances.InstanceId
+                    } |
+                    Where-Object {
+                        $null -ne $_
+                    }
+                }
+
+                # ...and launch configurations
+                if (($additionalAsgs.LaunchConfigurationName | Measure-Object).Count -gt 0)
+                {
+                    $launchConfigurationNames = Invoke-Command {
+                        $launchConfigurationNames
+                        $additionalAsgs.LaunchConfigurationName
+                    } |
+                    Where-Object {
+                        $null -ne $_
+                    }
+                }
+            }
+        }
+
         # Find instance security groups
+        Write-Verbose "- Getting instance security groups"
         $reservation = Get-EC2Instance -Filter @{
             Name   = 'instance-id'
             Values = $resources.Instances.Id | Select-Object -First 1
@@ -121,6 +176,7 @@ function Get-ATEBEnvironmentResourceList
 
         if (($resources.LoadBalancers | Measure-Object).Count -gt 0)
         {
+            Write-Verbose "- Getting load balancer details"
             # Get load balancer(s) and associated security groups
             $envData.LoadBalancers = $resources.LoadBalancers.Name |
                 ForEach-Object {
@@ -152,10 +208,11 @@ function Get-ATEBEnvironmentResourceList
             }
         }
 
-        if (($resources.LaunchConfigurations | Measure-Object).Count -gt 0)
+        if (($launchConfigurationNamess | Measure-Object).Count -gt 0)
         {
+            Write-Verbose "- Getting launch configuration details"
             # Get launch configurations and data of interest
-            $envData.LaunchConfigurations = $resources.LaunchConfigurations.Name |
+            $envData.LaunchConfigurations += $launchConfigurationNames |
                 Foreach-Object {
 
                 $lc = Get-ASLaunchConfiguration -LaunchConfigurationName $_
