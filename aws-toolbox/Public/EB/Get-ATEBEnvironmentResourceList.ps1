@@ -85,13 +85,13 @@ function Get-ATEBEnvironmentResourceList
         } |
         ForEach-Object {
 
-        $environmentId = $_.EnvironmentId
+        $thisEnvironmentId = $_.EnvironmentId
         Write-Verbose $_.EnvironmentName
         Write-Verbose "- Reading resource list"
 
         # Name of stack created by Elastic Beanstalk
-        $ebStackName = "awseb-$environmentId-stack"
-        $resources = Get-EBEnvironmentResource -EnvironmentId $environmentId
+        $ebStackName = "awseb-$thisEnvironmentId-stack"
+        $resources = Get-EBEnvironmentResource -EnvironmentId $thisEnvironmentId
         $launchConfigurationNames = $resources.LaunchConfigurations.Name
 
         # Create summary object
@@ -120,7 +120,7 @@ function Get-ATEBEnvironmentResourceList
             Write-Verbose "- Looking for immutable deployment resources (update in progress)"
             $additionalAsgs = Get-ASAutoScalingGroup |
             Where-Object {
-                $_.AutoScalingGroupName -like "awseb-$environmentId-immutable-stack*"
+                $_.AutoScalingGroupName -like "awseb-$thisEnvironmentId-immutable-stack*"
             } |
             Select-Object AutoScalingGroupName, Instances, LaunchConfigurationName
 
@@ -208,7 +208,7 @@ function Get-ATEBEnvironmentResourceList
             }
         }
 
-        if (($launchConfigurationNamess | Measure-Object).Count -gt 0)
+        if (($launchConfigurationNames | Measure-Object).Count -gt 0)
         {
             Write-Verbose "- Getting launch configuration details"
             # Get launch configurations and data of interest
