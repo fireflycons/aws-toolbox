@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.18.0
+
+* Enhance `Get-ATEBEnvironmentResourceList` to return temporary infrastructre created during the course of an Immutable Deployment
+
 ## 0.17.3
 
 * Bug fix in `Get-ATIAMSessionCredentials` where a null object reference exception is thrown if converting IAM::User credentials
