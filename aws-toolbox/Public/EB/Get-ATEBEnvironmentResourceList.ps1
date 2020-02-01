@@ -127,7 +127,7 @@ function Get-ATEBEnvironmentResourceList
             if ($additionalAsgs)
             {
                 # Add the ASG
-                $env.AutoScalingGroups = Invoke-Command {
+                $envData.AutoScalingGroups = Invoke-Command {
                     $resources.AutoScalingGroups.Name
                     $additionalAsgs.AutoScalingGroupName
                 } |
