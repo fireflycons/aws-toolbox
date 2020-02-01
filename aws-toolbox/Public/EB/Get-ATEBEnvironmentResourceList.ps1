@@ -138,7 +138,7 @@ function Get-ATEBEnvironmentResourceList
                 # Add this ASG's instances
                 if (($additionalAsgs.Instances | Measure-Object).Count -gt 0)
                 {
-                    $envData.Instances.Id = Invoke-Command {
+                    $envData.Instances.InstanceId = Invoke-Command {
                         $resources.Instances.Id
                         $additionalAsgs.Instances.InstanceId
                     } |
