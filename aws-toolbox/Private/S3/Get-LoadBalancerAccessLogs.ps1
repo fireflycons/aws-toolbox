@@ -61,7 +61,12 @@ function Get-LoadBalancerAccessLogs
         $StartTime = $EndTime - [timespan]::FromMinutes($Last)
     }
 
-    $region = Get-BucketLocation -BucketName $Bucket
+    if ($env:AWTB_IGNORE_ELBROWCOUNT -ne '1' -and [Math]::Abs(($EndTime - $StartTime).TotalHours) -gt 4)
+    {
+        throw "Potential to return millions of rows! Set environment variable AWTB_IGNORE_ELBROWCOUNT to 1 to skip this check"
+    }
+
+    $region = Get-BucketLocation -BucketName $BucketName
 
     if (-not [string]::IsNullOrEmpty($KeyPrefix))
     {
@@ -76,19 +81,24 @@ function Get-LoadBalancerAccessLogs
     $startPrefix = "$KeyPrefix/$AccountId/elasticloadbalancing/$region/$($StartTime.ToString('yyyy/MM/dd'))/$($AccountId)_elasticloadbalancing_$($region)_$($LoadBalancerId)"
     $endPrefix = "$KeyPrefix/$AccountId/elasticloadbalancing/$region/$($EndTime.ToString('yyyy/MM/dd'))/$($AccountId)_elasticloadbalancing_$($region)_$($LoadBalancerId)"
 
-    ($startPrefix, $endPrefix) |
+    $range = ($startPrefix, $endPrefix) |
         Sort-Object -Unique |
         ForEach-Object {
-        Get-S3Object -BucketName $BucketName -KeyPrefix $_ |
-            Foreach-Object {
+            Get-S3Object -BucketName $BucketName -KeyPrefix $_
+        } |
+        Sort-Object -Unique Key
 
-            if ($_.Key -match '(?<year>\d{4})(?<month>\d{2})(?<day>\d{2})T(?<hour>\d{2})(?<minute>\d{2})Z_(?<ip>\d+\.\d+\.\d+\.\d+)')
-            {
-                $_ | Add-Member -PassThru -MemberType NoteProperty -Name EndTime -Value (New-Object DateTime -ArgumentList @($Matches.year, $Matches.month, $Matches.day, $Matches.hour, $Matches.minute, 0, 0, 'Utc')) |
-                    Add-Member -PassThru -MemberType NoteProperty -Name NodeIp -Value ([System.Net.IPAddress]::Parse($Matches.ip).IPAddressToString)
-            }
+    $range = $range |
+        Foreach-Object {
+
+        if ($_.Key -match '(?<year>\d{4})(?<month>\d{2})(?<day>\d{2})T(?<hour>\d{2})(?<minute>\d{2})Z_(?<ip>\d+\.\d+\.\d+\.\d+)')
+        {
+            $_ | Add-Member -PassThru -MemberType NoteProperty -Name EndTime -Value (New-Object DateTime -ArgumentList @($Matches.year, $Matches.month, $Matches.day, $Matches.hour, $Matches.minute, 0, 0, 'Utc')) |
+                Add-Member -PassThru -MemberType NoteProperty -Name NodeIp -Value ([System.Net.IPAddress]::Parse($Matches.ip).IPAddressToString)
         }
-    }  |
+    }
+
+    $range |
         Where-Object {
             $_.EndTime -le $EndTime -and $_.EndTime -ge $StartTime
     }

@@ -11,7 +11,7 @@
     RootModule        = 'aws-toolbox.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '0.18.0'
+    ModuleVersion     = '1.0.0'
 
     # ID used to uniquely identify this module
     GUID              = 'e3c04d58-4e7d-4572-9e81-3b3a93f1a518'
@@ -23,16 +23,28 @@
     CompanyName       = 'Firefly Consulting Ltd.'
 
     # Copyright statement for this module
-    Copyright         = '(c) 2018 Alistair Mackay. All rights reserved.'
+    Copyright         = '(c) 2018-2020 Alistair Mackay. All rights reserved.'
 
     # Description of the functionality provided by this module
     Description       = 'Collection of useful tools for AWS'
 
     # Minimum version of the Windows PowerShell engine required by this module
-    PowerShellVersion = '3.0'
+    PowerShellVersion = '5.1'
 
     # Modules that must be imported into the global environment prior to importing this module
-    RequiredModules   = @('AWSPowerShell')
+    RequiredModules   = @(
+        'AWS.Tools.Common'
+        'AWS.Tools.SecurityToken'
+        'AWS.Tools.CloudFormation'
+        'AWS.Tools.EC2'
+        'AWS.Tools.S3'
+        'AWS.Tools.CloudwatchLogs'
+        'AWS.Tools.Lambda'
+        'AWS.Tools.SimpleSystemsManagement'
+        'AWS.Tools.ElasticBeanstalk'
+        'AWS.Tools.ElasticLoadBalancing'
+        'AWS.Tools.ElasticLoadBalancingV2'
+    )
 
     # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
     FunctionsToExport = @(
@@ -74,7 +86,19 @@
             Tags                       = @('AWS', 'Tools')
 
             # Required modules not included as part of this one
-            ExternalModuleDependencies = @('AWSPowerShell')
+            ExternalModuleDependencies = @(
+                'AWS.Tools.Common'
+                'AWS.Tools.SecurityToken'
+                'AWS.Tools.CloudFormation'
+                'AWS.Tools.EC2'
+                'AWS.Tools.S3'
+                'AWS.Tools.CloudwatchLogs'
+                'AWS.Tools.Lambda'
+                'AWS.Tools.SimpleSystemsManagement'
+                'AWS.Tools.ElasticBeanstalk'
+                'AWS.Tools.ElasticLoadBalancing'
+                'AWS.Tools.ElasticLoadBalancingV2'
+            )
 
             # A URL to the license for this module.
             LicenseUri                 = 'https://github.com/fireflycons/aws-toolbox/blob/master/LICENCE'

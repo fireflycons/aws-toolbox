@@ -33,7 +33,12 @@ function Get-BucketLocation
         USW2  = 'us-west-1'
     }
 
-    $location = Get-S3BucketLocation -BucketName $bucketName | Select-Object -ExpandProperty Value
+    $location = Get-S3BucketLocation -BucketName $BucketName | Select-Object -ExpandProperty Value
+
+    if ($null -eq $location)
+    {
+        throw "Cannot deternine location for bucket '$BucketName'"
+    }
 
     if ($defaultRegionsMap.ContainsKey($location))
     {

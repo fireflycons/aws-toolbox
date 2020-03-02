@@ -128,8 +128,8 @@ InModuleScope $ModuleName {
 
                 $logs = Get-LoadBalancerAccessLogs -LoadBalancerId 'my-loadbalancer' -AccountId 123456789012 -BucketName mybucket -KeyPrefix my-app -StartTime $startDate -EndTime $endtDate
 
-                # 15/02/2014 23:40:00, 15/02/2014 23:55:00, 16/02/2014 00:10:00, 16/02/2014 00:25:00
-                ($logs | Measure-Object).Count | Should Be 4
+                # 15/02/2014 23:40:00 x 2, 15/02/2014 23:55:00, 16/02/2014 00:10:00, 16/02/2014 00:25:00
+                ($logs | Measure-Object).Count | Should Be 5
             }
 
             It 'Should get logs for last 30 minutes' {
@@ -138,6 +138,19 @@ InModuleScope $ModuleName {
 
                 # At 15 min interval, should be 2 or 3 returned
                 ($logs | Measure-Object).Count | Should BeIn @(2,3)
+            }
+
+            It 'Should throw if date range gt 4 hours' {
+
+                $env:AWTB_IGNORE_ELBROWCOUNT = $null
+                { Get-LoadBalancerAccessLogs -LoadBalancerId 'my-loadbalancer' -AccountId 123456789012 -BucketName mybucket -KeyPrefix my-app -Last 250 } | Should Throw
+            }
+
+            It 'Should not throw if date range gt 4 hours and AWTB_IGNORE_ELBROWCOUNT = 1' {
+
+                $env:AWTB_IGNORE_ELBROWCOUNT = '1'
+                { Get-LoadBalancerAccessLogs -LoadBalancerId 'my-loadbalancer' -AccountId 123456789012 -BucketName mybucket -KeyPrefix my-app -Last 250 } | Should -Not -Throw
+                $env:AWTB_IGNORE_ELBROWCOUNT = $null
             }
         }
 
@@ -203,7 +216,7 @@ InModuleScope $ModuleName {
 
             It 'Should return bucket details if bucket exists' {
 
-                $region = 'us-east-1'
+                $global:region = 'us-east-1'
                 Set-DefaultAWSRegion -Region $region
 
                 $expectedBucketName = "aws-toolbox-workspace-$($region)-000000000000"
@@ -211,8 +224,13 @@ InModuleScope $ModuleName {
 
                 Mock -CommandName Get-S3BucketLocation -MockWith {
 
+                    if ($null -eq $global:region)
+                    {
+                        throw "Mock Get-S3BucketLocation - region is null"
+                    }
+
                     New-Object PSObject -Property @{
-                        Value = $region
+                        Value = $global:region
                     }
                 }
 
@@ -224,13 +242,13 @@ InModuleScope $ModuleName {
 
             It 'Should tag existing bucket if untagged' {
 
-                $region = 'us-east-1'
+                $global:region = 'us-east-1'
                 Set-DefaultAWSRegion -Region $region
 
                 Mock -CommandName Get-S3BucketLocation -MockWith {
 
                     New-Object PSObject -Property @{
-                        Value = $region
+                        Value = $global:region
                     }
                 }
 
@@ -248,7 +266,7 @@ InModuleScope $ModuleName {
                     }
 
                     New-Object PSObject -Property @{
-                        Value = $region
+                        Value = $global:region
                     }
                 }
 
@@ -281,7 +299,7 @@ InModuleScope $ModuleName {
                 Mock -CommandName Get-S3BucketLocation -MockWith {
 
                     New-Object PSObject -Property @{
-                        Value = $region
+                        Value = $global:region
                     }
                 }
 
