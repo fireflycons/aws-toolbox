@@ -20,10 +20,6 @@ for:
       - image: Visual Studio 2019
   deploy_script:
     - ps: . .\build.ps1 -Task Deploy
-- matrix:
-    only:
-      - branch: master
-  fast_finish: true
 
 # Skip on updates to the readme.
 # We can force this by adding [skip ci] or [ci skip] anywhere in commit message
