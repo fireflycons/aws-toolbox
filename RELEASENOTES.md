@@ -1,5 +1,9 @@
 # Release Notes
 
+## 1.0.0
+
+* Convert to use AWS.Tools instead of the old monolithic AWSPowerShell. AWS Tools is cross-pltform therefore there is no longer a need to publish an addtional .netcore version of this module - it is now inherently cross-platform.
+
 ## 0.18.0
 
 * Enhance `Get-ATEBEnvironmentResourceList` to return temporary infrastructre created during the course of an Immutable Deployment
