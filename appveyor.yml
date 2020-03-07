@@ -6,8 +6,8 @@ environment:
     secure: ZwF65Rl156oMAenHhi8BAY0LySWhhjDvNNt91dpU7D5N88E8ToZyZHCziktv7sz3
 
 image:
-  - Visual Studio 2019
   - Ubuntu
+  - Visual Studio 2019
 
 for:
 - matrix:
@@ -20,6 +20,10 @@ for:
       - image: Visual Studio 2019
   deploy_script:
     - ps: . .\build.ps1 -Task Deploy
+- matrix:
+    only:
+      - branch: master
+  fast_finish: true
 
 # Skip on updates to the readme.
 # We can force this by adding [skip ci] or [ci skip] anywhere in commit message
