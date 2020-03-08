@@ -57,11 +57,6 @@ function Compare-ATCFNStackResourceDrift
 
     begin
     {
-        if ($null -eq (Get-Command -Name Start-CFNStackDriftDetection -ErrorAction SilentlyContinue))
-        {
-            Write-Warning 'Upgrade your version of AWSPowerShell to see drift information'
-            return $null
-        }
     }
 
     process

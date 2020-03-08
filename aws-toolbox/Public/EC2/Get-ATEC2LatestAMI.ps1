@@ -7,7 +7,7 @@ function Get-ATEC2LatestAMI
     .DESCRIPTION
         Given an AMI search filter, the script enumerates all known regions looking for the newest AMI that matches the criteria
         Depending on where you are and your account permissions, some regions will not return a value e.g. China and Gov Cloud.
-        Ensure you have the latest version of AWSPowerShell if AWS has recently added new regions.
+        Ensure you have the latest version of AWS Tools if AWS has recently added new regions.
 
     .PARAMETER ImageName
         Name of image to search for (may include wildcards).

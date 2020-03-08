@@ -62,34 +62,27 @@ function Compare-ATDeployedStackWithSourceTemplate
 
         Write-Host "Last CloudFormation Update: $($event.Timestamp.ToString('dd MMM yyyy, HH:mm:ss'))"
 
-        if ($null -ne (Get-Command -Name Start-CFNStackDriftDetection -ErrorAction SilentlyContinue))
+        # Initiate drift detection
+        $driftStatus = Get-StackDrift -Stack $stack
+
+        if ($driftStatus -eq 'DRIFTED')
         {
-            # Initiate drift detection
-            $driftStatus = Get-StackDrift -Stack $stack
+            Write-Warning "Stack has drifted..."
+            Write-Host (
+                Get-CFNDetectedStackResourceDrift -StackName $stack.StackId -StackResourceDriftStatusFilter @('DELETED', 'MODIFIED') |
+                    Select-Object StackResourceDriftStatus, LogicalResourceId |
+                    Out-String
+            )
 
-            if ($driftStatus -eq 'DRIFTED')
-            {
-                Write-Warning "Stack has drifted..."
-                Write-Host (
-                    Get-CFNDetectedStackResourceDrift -StackName $stack.StackId -StackResourceDriftStatusFilter @('DELETED', 'MODIFIED') |
-                        Select-Object StackResourceDriftStatus, LogicalResourceId |
-                        Out-String
-                )
-
-                Write-Host
-                Write-Host "To view detail on these drifts, run the following command:"
-                Write-Host
-                Write-Host "  Compare-ATCFNStackResourceDrift -StackName $StackName -NoReCheck"
-                Write-Host
-            }
-            else
-            {
-                Write-Host "Stack drift: $($driftStatus)"
-            }
+            Write-Host
+            Write-Host "To view detail on these drifts, run the following command:"
+            Write-Host
+            Write-Host "  Compare-ATCFNStackResourceDrift -StackName $StackName -NoReCheck"
+            Write-Host
         }
         else
         {
-            Write-Warning 'Upgrade your version of AWSPowerShell to see drift information'
+            Write-Host "Stack drift: $($driftStatus)"
         }
 
         # Write AWS view of template to temp file
