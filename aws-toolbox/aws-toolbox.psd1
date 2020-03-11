@@ -11,7 +11,7 @@
     RootModule        = 'aws-toolbox.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '1.0.0'
+    ModuleVersion     = '1.0.1'
 
     # ID used to uniquely identify this module
     GUID              = 'e3c04d58-4e7d-4572-9e81-3b3a93f1a518'
@@ -34,6 +34,7 @@
     # Modules that must be imported into the global environment prior to importing this module
     RequiredModules   = @(
         'AWS.Tools.Common'
+        'AWS.Tools.AutoScaling'
         'AWS.Tools.SecurityToken'
         'AWS.Tools.CloudFormation'
         'AWS.Tools.EC2'
@@ -88,6 +89,7 @@
             # Required modules not included as part of this one
             ExternalModuleDependencies = @(
                 'AWS.Tools.Common'
+                'AWS.Tools.AutoScaling'
                 'AWS.Tools.SecurityToken'
                 'AWS.Tools.CloudFormation'
                 'AWS.Tools.EC2'
