@@ -38,6 +38,11 @@
         Version        = '4.0.4.0'
         Tags           = @('Desktop', 'Core')
     }
+    'AWS.Tools.AutoScaling'             = @{
+        DependencyType = 'PSGalleryModule'
+        Version        = '4.0.4.0'
+        Tags           = @('Desktop', 'Core')
+    }
     'AWS.Tools.SecurityToken'           = @{
         DependencyType = 'PSGalleryModule'
         Version        = '4.0.4.0'
