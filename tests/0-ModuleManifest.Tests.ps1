@@ -47,5 +47,68 @@ Describe "$ModuleName Module - Testing Manifest File (.psd1)" {
                 $_ | Should Not Match '\s'
             }
         }
+        It "Should have matching dependencies in RequiredModules and PrivateData.PSData['ExternalModuleDependencies']" {
+
+            Compare-Object -ReferenceObject $ModuleInformation.RequiredModules -DifferenceObject $ModuleInformation.PrivateData.PSData['ExternalModuleDependencies'] | SHould -BeNullOrEmpty
+        }
+    }
+
+    Context 'Required dependencies are listed' {
+        Write-Host -ForegroundColor Green '    Scanning module files...'
+
+        # All verbs
+        $verbs = Get-Verb | Select-Object -ExpandProperty Verb
+
+        # AWS service info
+        $services = Get-AWSService |
+        Where-Object {
+            # Confusion between AS and ASA prefixes
+            ('AWS.Tools.AWSSupport') -inotcontains $_.ModuleName
+        }
+
+        # Service cmdlet noun prefixes
+        $nounPrefixes = $services |
+        Select-Object -ExpandProperty CmdletNounPrefix |
+        Sort-Object -Property @{Expression = {$_.Length}; Descending = $true}
+
+        # Build regex to search for AWS cmldet calls within the module
+        $regex = New-Object System.Text.RegularExpressions.Regex -ArgumentList "($($verbs -join '|'))-(?<prefix>$($nounPrefixes -join '|'))[A-Za-z\d]+"
+
+        # Gather module content
+        $moduleScripts = Get-ChildItem -Path ([IO.Path]::Combine($PSScriptRoot, '..', 'aws-toolbox')) -Filter *.ps1 -Recurse
+
+        # Detect all usages of AWS cmdlets by unique noun prefix
+        $detectedNounPrefixes = $moduleScripts |
+        ForEach-Object {
+            $_ | Get-Content |
+            ForEach-Object {
+                $mc = $regex.Matches($_)
+
+                if ($mc.Success)
+                {
+                    $mc |
+                    Foreach-Object {
+                        $_.Groups['prefix'].Value
+                    }
+                }
+            }
+        } |
+        Sort-Object -Unique
+
+        # Check module for each prefix is listed as a dependency
+        $detectedNounPrefixes |
+        Foreach-Object {
+
+            $prefix = $_
+            $dependency = $services |
+            Where-Object {
+                $_.CmdletNounPrefix -eq $prefix
+            }
+
+            It "Should import $($dependency.ModuleName)" {
+
+                $ModuleInformation.RequiredModules.Name | Should -Contain $dependency.ModuleName
+            }
+        }
     }
 }
